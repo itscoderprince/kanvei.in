@@ -1,9 +1,9 @@
-"use client" 
+"use client"
 
 import { createContext, useContext, useReducer, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { toast } from "../hooks/use-toast"
+import toast from "react-hot-toast"
 
 const AuthContext = createContext()
 
@@ -45,7 +45,7 @@ const authReducer = (state, action) => {
 }
 
 export function AuthProvider({ children }) {
-  
+
   const router = useRouter()
   const { data: session, status } = useSession()
   const [state, dispatch] = useReducer(authReducer, {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     // Only run once on mount
     const token = localStorage.getItem("kanvei-token")
     const user = localStorage.getItem("kanvei-user")
-    
+
     if (token && user) {
       try {
         const parsedUser = JSON.parse(user)
@@ -83,23 +83,23 @@ export function AuthProvider({ children }) {
   // Load user from localStorage or NextAuth session when status changes
   useEffect(() => {
     console.log("🔄 Auth status changed:", { status, hasSession: !!session })
-    
+
     // Check NextAuth session first
     if (status === 'loading') {
       dispatch({ type: "SET_LOADING", payload: true })
       return
     }
-    
+
     if (status === 'authenticated' && session?.user) {
       console.log("✅ NextAuth session found:", session.user.email)
-      
+
       // Clear any custom auth localStorage when using NextAuth
       localStorage.removeItem("kanvei-token")
       localStorage.removeItem("kanvei-user")
-      
+
       // Check if this is a new login (not just a page refresh)
       const wasAuthenticated = state.isAuthenticated
-      
+
       // User is authenticated via NextAuth
       dispatch({
         type: "LOGIN",
@@ -114,11 +114,11 @@ export function AuthProvider({ children }) {
           token: 'nextauth_session' // Placeholder token for NextAuth sessions
         },
       })
-      
+
       // Show notification only for new social logins (not on page refresh)
-      const isPendingSocialLogin = typeof window !== 'undefined' && 
+      const isPendingSocialLogin = typeof window !== 'undefined' &&
         sessionStorage.getItem('social-login-pending') === 'true'
-      
+
       // Only show notification if there was a pending social login
       if (!wasAuthenticated && session.user.name && isPendingSocialLogin) {
         console.log('🔔 Showing social login success notification for:', session.user.name)
@@ -128,25 +128,21 @@ export function AuthProvider({ children }) {
           minute: '2-digit',
           hour12: true
         })
-        toast({
-          variant: "success",
-          title: "Social Login Successful! 🎉",
-          description: `Welcome, ${session.user.name}! Logged in at ${currentTime}`,
-        })
-        
+        toast.success(`Social Login Successful! Welcome, ${session.user.name}!`)
+
         // Clear the pending flag after showing notification
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('social-login-pending')
         }
       }
-      
+
       return
     }
 
     // Always check localStorage for custom auth (don't depend only on NextAuth status)
     const token = localStorage.getItem("kanvei-token")
     const user = localStorage.getItem("kanvei-user")
-    
+
     console.log("🔍 Checking localStorage:", { hasToken: !!token, hasUser: !!user })
 
     if (token && user) {
@@ -209,22 +205,12 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification
         console.log('🔔 Showing login success notification')
-        const currentTime = new Date().toLocaleString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        })
-        toast({
-          variant: "success",
-          title: "Login Successful! ✅",
-          description: `Welcome back, ${data.user.name}! Logged in at ${currentTime}`,
-        })
+        toast.success(`Login Successful! Welcome back, ${data.user.name}!`)
         console.log('🔔 Login notification triggered')
-        
+
         return { success: true, user: data.user, token: data.token }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -258,20 +244,10 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification
-        const currentTime = new Date().toLocaleString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        })
-        toast({
-          variant: "success",
-          title: "OTP Verification Successful! ✅",
-          description: `Welcome back, ${data.user.name}! Logged in at ${currentTime}`,
-        })
-        
+        toast.success(`OTP Verification Successful! Welcome back, ${data.user.name}!`)
+
         return { success: true }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -305,14 +281,10 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification for Google login
-        toast({
-          variant: "success",
-          title: "Google Login Successful!",
-          description: `Welcome, ${data.user.name}!`,
-        })
-        
+        toast.success(`Google Login Successful! Welcome, ${data.user.name}!`)
+
         return { success: true }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -346,14 +318,10 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification for Facebook login
-        toast({
-          variant: "success",
-          title: "Facebook Login Successful!",
-          description: `Welcome, ${data.user.name}!`,
-        })
-        
+        toast.success(`Facebook Login Successful! Welcome, ${data.user.name}!`)
+
         return { success: true }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -404,14 +372,10 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification for registration
-        toast({
-          variant: "success",
-          title: "Registration Successful!",
-          description: `Your account has been created, ${data.user.name}!`,
-        })
-        
+        toast.success(`Registration Successful! Account created for ${data.user.name}!`)
+
         return { success: true }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -450,14 +414,10 @@ export function AuthProvider({ children }) {
             token: data.token,
           },
         })
-        
+
         // Show success notification for OTP registration
-        toast({
-          variant: "success",
-          title: "OTP Registration Successful!",
-          description: `Your account has been created, ${data.user.name}!`,
-        })
-        
+        toast.success(`OTP Registration Successful! Account created for ${data.user.name}!`)
+
         return { success: true }
       } else {
         dispatch({ type: "SET_LOADING", payload: false })
@@ -472,20 +432,16 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     // Get current user name before logout for notification
     const userName = state.user?.name || "User"
-    
+
     // Sign out from NextAuth if session exists
     if (status === 'authenticated') {
       await signOut({ redirect: false })
     }
     dispatch({ type: "LOGOUT" })
-    
+
     // Show logout notification
-    toast({
-      variant: "info",
-      title: "Logout Successful!",
-      description: `Thank you, ${userName}! You have been logged out successfully.`,
-    })
-    
+    toast.success(`Logout Successful! Goodbye, ${userName}.`)
+
     // Redirect to home page immediately
     router.push('/')
   }

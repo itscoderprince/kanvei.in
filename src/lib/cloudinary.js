@@ -29,6 +29,30 @@ export const uploadImage = async (file, folder = "kanvei") => {
   }
 }
 
+export const uploadBuffer = async (buffer, folder = "kanvei") => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "auto",
+        transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload_stream error:", error)
+          return resolve({ success: false, error: error.message })
+        }
+        resolve({
+          success: true,
+          url: result.secure_url,
+          publicId: result.public_id,
+        })
+      }
+    )
+    uploadStream.end(buffer)
+  })
+}
+
 export const deleteImage = async (publicId) => {
   try {
     const result = await cloudinary.uploader.destroy(publicId)
@@ -89,13 +113,13 @@ export const deleteMultipleImages = async (imageUrls) => {
         return { publicId, success: false, error: error.message }
       }
     })
-    
+
     const batchResults = await Promise.allSettled(batchPromises)
     results.push(...batchResults.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: r.reason }))
   }
 
   const successCount = results.filter(r => r.success).length
-  
+
   return {
     success: errors.length === 0,
     deletedCount: successCount,

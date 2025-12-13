@@ -5,734 +5,464 @@ import Header from "../../components/shared/Header"
 import Footer from "../../components/shared/Footer"
 import { useAuth } from "../../contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useToast } from "../../contexts/ToastContext"
+import toast from "react-hot-toast"
 import Link from "next/link"
-import { AiOutlineUser, AiOutlineEdit, AiOutlineSave, AiOutlineClose, AiOutlinePlus, AiOutlineDelete, AiOutlineHome, AiOutlineMail, AiOutlinePhone } from "react-icons/ai"
-import { MdLocationOn, MdVerifiedUser, MdSecurity, MdHome } from "react-icons/md"
+import {
+  User,
+  MapPin,
+  ShoppingBag,
+  Heart,
+  LogOut,
+  Edit2,
+  Plus,
+  Trash2,
+  Save,
+  X,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Home,
+  CheckCircle,
+  CreditCard
+} from "lucide-react"
 
 export default function ProfilePage() {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const { user: authUser, isAuthenticated: customAuth, token: authToken } = useAuth()
-  const { showSuccess, showError, showInfo } = useToast()
-  
+  const { user: authUser, isAuthenticated: customAuth, token: authToken, logout } = useAuth()
+
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
+
+  // Interaction States
   const [editMode, setEditMode] = useState(false)
-  const [editAddressMode, setEditAddressMode] = useState(false)
-  const [showAddAddress, setShowAddAddress] = useState(false)
-  
-  // Determine current user from either session or custom auth
-  const currentUser = session?.user || authUser
-  const isUserAuthenticated = (status === "authenticated") || customAuth
-  
-  const [profileData, setProfileData] = useState({
-    name: "",
-    email: "",
-    phone: ""
-  })
-  
+  const [showAddressForm, setShowAddressForm] = useState(false)
+  const [editingAddressId, setEditingAddressId] = useState(null)
+
+  // Data States
+  const [profileData, setProfileData] = useState({ name: "", email: "", phone: "" })
   const [addresses, setAddresses] = useState([])
   const [addressCount, setAddressCount] = useState(0)
   const [maxAddresses, setMaxAddresses] = useState(3)
-  
-  const [tempProfileData, setTempProfileData] = useState({})
-  const [tempAddressData, setTempAddressData] = useState({
-    street: "",
-    city: "",
-    state: "",
-    pinCode: "",
-    isHomeAddress: false
+
+  // Form States
+  const [tempProfile, setTempProfile] = useState({})
+  const [addressForm, setAddressForm] = useState({
+    street: "", city: "", state: "", pinCode: "", isHomeAddress: false
   })
-  const [editingAddressId, setEditingAddressId] = useState(null)
 
-  // Check authentication and redirect if not logged in
+  const currentUser = session?.user || authUser
+  const isUserAuthenticated = (status === "authenticated") || customAuth
+
+  // Auth Check
   useEffect(() => {
-    if (status === "loading") return // Still loading
-
+    if (status === "loading") return
     if (!isUserAuthenticated) {
       router.push('/login')
       return
     }
-
-    // Redirect admin to dashboard
     if (currentUser?.role === "admin") {
       router.push('/admindashboard')
       return
     }
-
     setLoading(false)
   }, [status, isUserAuthenticated, currentUser, router])
 
-  // Fetch user profile and addresses
+  // Data Fetching
   useEffect(() => {
     if (!currentUser?._id && !currentUser?.id) return
 
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
         const headers = { 'Content-Type': 'application/json' }
-        if (authToken && authToken !== 'nextauth_session') {
-          headers.Authorization = `Bearer ${authToken}`
-        }
+        if (authToken && authToken !== 'nextauth_session') headers.Authorization = `Bearer ${authToken}`
 
-        const response = await fetch('/api/user/profile', { headers })
-        const data = await response.json()
+        const [profileRes, addrRes] = await Promise.all([
+          fetch('/api/user/profile', { headers }),
+          fetch('/api/user/addresses', { headers })
+        ])
 
-        if (data.success) {
+        const profileData = await profileRes.json()
+        const addrData = await addrRes.json()
+
+        if (profileData.success) {
           setProfileData({
-            name: data.user.name || "",
-            email: data.user.email || "",
-            phone: data.user.phone || ""
+            name: profileData.user.name || "",
+            email: profileData.user.email || "",
+            phone: profileData.user.phone || ""
           })
         }
+        if (addrData.success) {
+          setAddresses(addrData.addresses || [])
+          setAddressCount(addrData.count || 0)
+          setMaxAddresses(addrData.maxAddresses || 3)
+        }
       } catch (error) {
-        console.error('Error fetching profile:', error)
-        showError('Failed to load profile data')
+        console.error('Error fetching data:', error)
+        toast.error('Failed to load profile data')
       }
     }
 
-    const fetchAddresses = async () => {
-      try {
-        const headers = { 'Content-Type': 'application/json' }
-        if (authToken && authToken !== 'nextauth_session') {
-          headers.Authorization = `Bearer ${authToken}`
-        }
+    if (isUserAuthenticated && !loading) fetchData()
+  }, [currentUser, isUserAuthenticated, loading, authToken])
 
-        const response = await fetch('/api/user/addresses', { headers })
-        const data = await response.json()
-
-        if (data.success) {
-          setAddresses(data.addresses || [])
-          setAddressCount(data.count || 0)
-          setMaxAddresses(data.maxAddresses || 3)
-        }
-      } catch (error) {
-        console.error('Error fetching addresses:', error)
-        showError('Failed to load addresses')
-      }
-    }
-
-    if (isUserAuthenticated && !loading) {
-      fetchProfile()
-      fetchAddresses()
-    }
-  }, [currentUser, isUserAuthenticated, loading, authToken, showError])
-
-  // Profile handlers
+  // Handlers
   const handleEditProfile = () => {
-    setTempProfileData({
-      name: profileData.name,
-      phone: profileData.phone
-    })
+    setTempProfile({ name: profileData.name, phone: profileData.phone })
     setEditMode(true)
   }
 
   const handleSaveProfile = async () => {
-    if (!tempProfileData.name.trim()) {
-      showError('Name is required')
-      return
-    }
-
+    if (!tempProfile.name?.trim()) return toast.error('Name is required')
     setUpdating(true)
     try {
       const headers = { 'Content-Type': 'application/json' }
-      if (authToken && authToken !== 'nextauth_session') {
-        headers.Authorization = `Bearer ${authToken}`
-      }
+      if (authToken && authToken !== 'nextauth_session') headers.Authorization = `Bearer ${authToken}`
 
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          name: tempProfileData.name,
-          phone: tempProfileData.phone
-        })
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT', headers,
+        body: JSON.stringify({ name: tempProfile.name, phone: tempProfile.phone })
       })
+      const data = await res.json()
 
-      const data = await response.json()
       if (data.success) {
-        setProfileData(prev => ({
-          ...prev,
-          name: tempProfileData.name,
-          phone: tempProfileData.phone
-        }))
+        setProfileData(prev => ({ ...prev, ...tempProfile }))
         setEditMode(false)
-        showSuccess('Profile updated successfully!')
+        toast.success('Profile updated!')
       } else {
-        showError(data.error || 'Failed to update profile')
+        toast.error(data.error || 'Update failed')
       }
-    } catch (error) {
-      console.error('Error updating profile:', error)
-      showError('Failed to update profile')
+    } catch (err) {
+      toast.error('Failed to update profile')
     } finally {
       setUpdating(false)
     }
   }
 
-  // Address handlers
-  const handleAddAddress = () => {
-    if (addressCount >= maxAddresses) {
-      showError(`Maximum ${maxAddresses} addresses allowed`)
-      return
-    }
-    
-    setTempAddressData({
-      street: "",
-      city: "",
-      state: "",
-      pinCode: "",
-      isHomeAddress: false
-    })
-    setEditingAddressId(null)
-    setShowAddAddress(true)
-    setEditAddressMode(false)
-  }
-
-  const handleEditAddress = (address) => {
-    setTempAddressData({
-      street: address.street || "",
-      city: address.city || "",
-      state: address.state || "",
-      pinCode: address.pinCode || "",
-      isHomeAddress: address.isHomeAddress || false
-    })
-    setEditingAddressId(address._id)
-    setEditAddressMode(true)
-    setShowAddAddress(false)
-  }
-
-  const handleSaveAddress = async () => {
-    if (!tempAddressData.city.trim()) {
-      showError('City is required')
-      return
-    }
-
+  const handleAddressSubmit = async () => {
+    if (!addressForm.city?.trim()) return toast.error('City is required')
     setUpdating(true)
     try {
       const headers = { 'Content-Type': 'application/json' }
-      if (authToken && authToken !== 'nextauth_session') {
-        headers.Authorization = `Bearer ${authToken}`
-      }
+      if (authToken && authToken !== 'nextauth_session') headers.Authorization = `Bearer ${authToken}`
 
-      const url = editingAddressId ? '/api/user/addresses' : '/api/user/addresses'
+      const url = '/api/user/addresses'
       const method = editingAddressId ? 'PUT' : 'POST'
-      const body = editingAddressId 
-        ? { ...tempAddressData, addressId: editingAddressId }
-        : tempAddressData
+      const body = editingAddressId ? { ...addressForm, addressId: editingAddressId } : addressForm
 
-      const response = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify(body)
-      })
+      const res = await fetch(url, { method, headers, body: JSON.stringify(body) })
+      const data = await res.json()
 
-      const data = await response.json()
       if (data.success) {
         setAddresses(data.addresses || [])
         setAddressCount(data.count || 0)
-        setEditAddressMode(false)
-        setShowAddAddress(false)
+        setShowAddressForm(false)
         setEditingAddressId(null)
-        showSuccess(data.message || 'Address saved successfully!')
+        setAddressForm({ street: "", city: "", state: "", pinCode: "", isHomeAddress: false })
+        toast.success(data.message || 'Address saved!')
       } else {
-        showError(data.error || 'Failed to save address')
+        toast.error(data.error || 'Address save failed')
       }
-    } catch (error) {
-      console.error('Error saving address:', error)
-      showError('Failed to save address')
+    } catch (err) {
+      toast.error('Failed to save address')
     } finally {
       setUpdating(false)
     }
   }
 
-  const handleDeleteAddress = async (addressId) => {
-    if (!confirm('Are you sure you want to delete this address?')) return
-
-    setUpdating(true)
+  const handleDeleteAddress = async (id) => {
+    if (!confirm('Delete this address?')) return
     try {
       const headers = { 'Content-Type': 'application/json' }
-      if (authToken && authToken !== 'nextauth_session') {
-        headers.Authorization = `Bearer ${authToken}`
-      }
+      if (authToken && authToken !== 'nextauth_session') headers.Authorization = `Bearer ${authToken}`
 
-      const response = await fetch(`/api/user/addresses?id=${addressId}`, {
-        method: 'DELETE',
-        headers
-      })
+      const res = await fetch(`/api/user/addresses?id=${id}`, { method: 'DELETE', headers })
+      const data = await res.json()
 
-      const data = await response.json()
       if (data.success) {
         setAddresses(data.addresses || [])
         setAddressCount(data.count || 0)
-        showSuccess('Address deleted successfully!')
+        toast.success('Address deleted')
       } else {
-        showError(data.error || 'Failed to delete address')
+        toast.error(data.error || 'Delete failed')
       }
-    } catch (error) {
-      console.error('Error deleting address:', error)
-      showError('Failed to delete address')
-    } finally {
-      setUpdating(false)
+    } catch (err) {
+      toast.error('Failed to delete address')
     }
   }
 
-  const cancelEdit = () => {
-    setEditMode(false)
-    setEditAddressMode(false)
-    setShowAddAddress(false)
-    setEditingAddressId(null)
-    setTempProfileData({})
-    setTempAddressData({
-      street: "",
-      city: "",
-      state: "",
-      pinCode: "",
-      isHomeAddress: false
+  const startEditAddress = (addr) => {
+    setAddressForm({
+      street: addr.street || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      pinCode: addr.pinCode || "",
+      isHomeAddress: addr.isHomeAddress || false
     })
+    setEditingAddressId(addr._id)
+    setShowAddressForm(true)
   }
 
-  // Loading state
+  // Loading State
   if (loading || status === "loading") {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col font-montserrat">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#5A0117" }}></div>
-            <p style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>Loading profile...</p>
-          </div>
+          <div className="w-16 h-16 border-4 border-[#5A0117] border-t-transparent rounded-full animate-spin"></div>
         </main>
-        <Footer />
       </div>
     )
   }
 
-  // Not authenticated
-  if (!isUserAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto p-8">
-            <div className="mb-8">
-              <MdSecurity className="mx-auto h-24 w-24 opacity-50" style={{ color: "#8C6141" }} />
-            </div>
-            <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              Access Restricted
-            </h1>
-            <p className="text-lg mb-6" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Please login to access your profile.
-            </p>
-            <Link
-              href="/login"
-              className="inline-block px-6 py-3 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-            >
-              Login Now
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
+  if (!isUserAuthenticated) return null
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-montserrat">
       <Header />
 
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              <AiOutlineUser className="w-8 h-8" />
-              My Profile
-            </h1>
-            <p className="mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Manage your account information and preferences
-            </p>
-          </div>
+        <div className="max-w-6xl mx-auto">
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Information */}
-            <div className="lg:col-span-2">
-              {/* Personal Information */}
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                    Personal Information
-                  </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 bg-[#5A0117] rounded-full flex items-center justify-center text-white text-2xl font-sugar shadow-lg shadow-[#5A0117]/30">
+                    {profileData.name?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-[#5A0117] font-sugar text-lg leading-tight">Hello,</h2>
+                    <p className="text-gray-600 truncate max-w-[150px]">{profileData.name || 'User'}</p>
+                  </div>
+                </div>
+
+                <nav className="space-y-2">
+                  <Link href="/profile" className="flex items-center gap-3 px-4 py-3 bg-[#5A0117]/5 text-[#5A0117] rounded-xl font-medium transition-colors">
+                    <User className="w-5 h-5" /> My Profile
+                  </Link>
+                  <Link href="/orders" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#5A0117] rounded-xl font-medium transition-colors">
+                    <ShoppingBag className="w-5 h-5" /> My Orders
+                  </Link>
+                  <Link href="/wishlist" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#5A0117] rounded-xl font-medium transition-colors">
+                    <Heart className="w-5 h-5" /> Wishlist
+                  </Link>
+                  <Link href="/cart" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#5A0117] rounded-xl font-medium transition-colors">
+                    <CreditCard className="w-5 h-5" /> Saved Cards
+                  </Link>
+                  <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors mt-6 text-left">
+                    <LogOut className="w-5 h-5" /> Logout
+                  </button>
+                </nav>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-8">
+
+              {/* Identity Card Section */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-[#5A0117] to-[#8C6141] p-6 text-white flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold font-sugar mb-1">Personal Info</h2>
+                    <p className="opacity-90 text-sm">Manage your personal identification details</p>
+                  </div>
                   {!editMode ? (
-                    <button
-                      onClick={handleEditProfile}
-                      className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg hover:bg-gray-50 transition-colors"
-                      style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-                    >
-                      <AiOutlineEdit className="w-4 h-4" />
-                      Edit
+                    <button onClick={handleEditProfile} className="bg-white/20 hover:bg-white/30 p-2 rounded-lg backdrop-blur-sm transition-colors">
+                      <Edit2 className="w-5 h-5" />
                     </button>
                   ) : (
                     <div className="flex gap-2">
-                      <button
-                        onClick={handleSaveProfile}
-                        disabled={updating}
-                        className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-                        style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        <AiOutlineSave className="w-4 h-4" />
+                      <button onClick={handleSaveProfile} disabled={updating} className="bg-white text-[#5A0117] px-4 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-gray-100 transition-colors">
                         {updating ? 'Saving...' : 'Save'}
                       </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg hover:bg-gray-50 transition-colors"
-                        style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        <AiOutlineClose className="w-4 h-4" />
-                        Cancel
+                      <button onClick={() => setEditMode(false)} className="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition-colors">
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                      Full Name
-                    </label>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfileData.name || ""}
-                        onChange={(e) => setTempProfileData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                        style={{ focusRingColor: "#5A0117" }}
-                        placeholder="Enter your full name"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <AiOutlineUser className="w-5 h-5" style={{ color: "#8C6141" }} />
-                        <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                          {profileData.name || "Not provided"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                <div className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
 
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                      Email Address
-                    </label>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <AiOutlineMail className="w-5 h-5" style={{ color: "#8C6141" }} />
-                      <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                        {profileData.email}
-                      </span>
-                      {currentUser?.emailVerified && (
-                        <MdVerifiedUser className="w-5 h-5 text-green-600" title="Verified" />
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Full Name</label>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={tempProfile.name || ''}
+                          onChange={e => setTempProfile(prev => ({ ...prev, name: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none transition-all"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-3 text-lg font-medium text-gray-800 border-b border-gray-100 pb-2">
+                          <User className="w-5 h-5 text-[#8C6141]" /> {profileData.name || 'Not Set'}
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs mt-1 text-gray-500">Email cannot be changed</p>
-                  </div>
 
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                      Phone Number
-                    </label>
-                    {editMode ? (
-                      <input
-                        type="tel"
-                        value={tempProfileData.phone || ""}
-                        onChange={(e) => setTempProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                        style={{ focusRingColor: "#5A0117" }}
-                        placeholder="Enter your phone number"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <AiOutlinePhone className="w-5 h-5" style={{ color: "#8C6141" }} />
-                        <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                          {profileData.phone || "Not provided"}
-                        </span>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Email Address</label>
+                      <div className="flex items-center gap-3 text-lg font-medium text-gray-800 border-b border-gray-100 pb-2 bg-gray-50/50 rounded px-2 cursor-not-allowed opacity-75">
+                        <Mail className="w-5 h-5 text-[#8C6141]" />
+                        <span className="truncate">{profileData.email}</span>
+                        {currentUser?.emailVerified && <ShieldCheck className="w-4 h-4 text-green-500 ml-auto" />}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Account Type */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                      Account Type
-                    </label>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <MdVerifiedUser className="w-5 h-5" style={{ color: "#8C6141" }} />
-                      <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                        {currentUser?.googleId ? 'Google Account' : currentUser?.facebookId ? 'Facebook Account' : 'Regular Account'}
-                      </span>
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Phone Number</label>
+                      {editMode ? (
+                        <input
+                          type="tel"
+                          value={tempProfile.phone || ''}
+                          onChange={e => setTempProfile(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none transition-all"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-3 text-lg font-medium text-gray-800 border-b border-gray-100 pb-2">
+                          <Phone className="w-5 h-5 text-[#8C6141]" /> {profileData.phone || 'Not Set'}
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               </div>
 
-              {/* Address Section */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold flex items-center gap-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                    <MdLocationOn className="w-6 h-6" />
-                    My Addresses ({addressCount}/{maxAddresses})
-                  </h2>
-                  {!editAddressMode && !showAddAddress && (
+              {/* Addresses Section */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold font-sugar text-[#5A0117]">My Addresses</h2>
+                    <p className="text-gray-500 text-sm">Manage shipping locations ({addressCount}/{maxAddresses})</p>
+                  </div>
+                  {!showAddressForm && addressCount < maxAddresses && (
                     <button
-                      onClick={handleAddAddress}
-                      disabled={addressCount >= maxAddresses}
-                      className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+                      onClick={() => {
+                        setAddressForm({ street: "", city: "", state: "", pinCode: "", isHomeAddress: false })
+                        setEditingAddressId(null)
+                        setShowAddressForm(true)
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#5A0117] text-white rounded-lg hover:bg-[#4a0113] transition-colors shadow-lg shadow-[#5A0117]/20 font-medium text-sm"
                     >
-                      <AiOutlinePlus className="w-4 h-4" />
-                      Add Address {addressCount >= maxAddresses ? '(Max Reached)' : ''}
+                      <Plus className="w-4 h-4" /> Add New
                     </button>
                   )}
                 </div>
 
-                {/* Address Form */}
-                {(editAddressMode || showAddAddress) && (
-                  <div className="mb-6 p-4 border rounded-lg" style={{ backgroundColor: "#f8f9fa" }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold" style={{ color: "#5A0117" }}>
+                <div className="p-6">
+                  {showAddressForm ? (
+                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 animate-in fade-in slide-in-from-top-4 duration-300">
+                      <h3 className="font-bold text-[#5A0117] mb-4 flex items-center gap-2">
+                        {editingAddressId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                         {editingAddressId ? 'Edit Address' : 'Add New Address'}
                       </h3>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleSaveAddress}
-                          disabled={updating}
-                          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-                          style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                        >
-                          <AiOutlineSave className="w-4 h-4" />
-                          {updating ? 'Saving...' : 'Save'}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="md:col-span-2">
+                          <input
+                            placeholder="Street Address, Apt, Suite"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none"
+                            value={addressForm.street}
+                            onChange={e => setAddressForm(prev => ({ ...prev, street: e.target.value }))}
+                          />
+                        </div>
+                        <input
+                          placeholder="City"
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none"
+                          value={addressForm.city}
+                          onChange={e => setAddressForm(prev => ({ ...prev, city: e.target.value }))}
+                        />
+                        <input
+                          placeholder="State"
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none"
+                          value={addressForm.state}
+                          onChange={e => setAddressForm(prev => ({ ...prev, state: e.target.value }))}
+                        />
+                        <input
+                          placeholder="PIN Code"
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#5A0117] focus:ring-2 focus:ring-[#5A0117]/20 outline-none"
+                          value={addressForm.pinCode}
+                          onChange={e => setAddressForm(prev => ({ ...prev, pinCode: e.target.value }))}
+                        />
+                        <div className="md:col-span-2 flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="isHome"
+                            checked={addressForm.isHomeAddress}
+                            onChange={e => setAddressForm(prev => ({ ...prev, isHomeAddress: e.target.checked }))}
+                            className="w-4 h-4 text-[#5A0117] focus:ring-[#5A0117] border-gray-300 rounded"
+                          />
+                          <label htmlFor="isHome" className="text-gray-700 font-medium text-sm">Mark as default home address</label>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button onClick={handleAddressSubmit} disabled={updating} className="px-6 py-2 bg-[#5A0117] text-white rounded-lg font-medium hover:bg-[#4a0113] transition-colors shadow-lg shadow-[#5A0117]/20">
+                          {updating ? 'Saving...' : 'Save Address'}
                         </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg hover:bg-gray-50 transition-colors"
-                          style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-                        >
-                          <AiOutlineClose className="w-4 h-4" />
+                        <button onClick={() => setShowAddressForm(false)} className="px-6 py-2 border border-gray-300 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                           Cancel
                         </button>
                       </div>
                     </div>
-
+                  ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                          Street Address
-                        </label>
-                        <textarea
-                          value={tempAddressData.street}
-                          onChange={(e) => setTempAddressData(prev => ({ ...prev, street: e.target.value }))}
-                          rows="2"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ focusRingColor: "#5A0117" }}
-                          placeholder="Enter your street address"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                          City *
-                        </label>
-                        <input
-                          type="text"
-                          value={tempAddressData.city}
-                          onChange={(e) => setTempAddressData(prev => ({ ...prev, city: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ focusRingColor: "#5A0117" }}
-                          placeholder="Enter city"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                          State
-                        </label>
-                        <input
-                          type="text"
-                          value={tempAddressData.state}
-                          onChange={(e) => setTempAddressData(prev => ({ ...prev, state: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ focusRingColor: "#5A0117" }}
-                          placeholder="Enter state"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                          PIN Code
-                        </label>
-                        <input
-                          type="text"
-                          value={tempAddressData.pinCode}
-                          onChange={(e) => setTempAddressData(prev => ({ ...prev, pinCode: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ focusRingColor: "#5A0117" }}
-                          placeholder="Enter PIN code"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={tempAddressData.isHomeAddress}
-                            onChange={(e) => setTempAddressData(prev => ({ ...prev, isHomeAddress: e.target.checked }))}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm font-medium" style={{ color: "#5A0117" }}>
-                            Mark as Home Address
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Address List */}
-                {addresses.length === 0 && !editAddressMode && !showAddAddress ? (
-                  <div className="text-center py-8">
-                    <AiOutlineHome className="mx-auto w-16 h-16 mb-4 opacity-30" style={{ color: "#8C6141" }} />
-                    <p className="text-lg mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                      No addresses added yet
-                    </p>
-                    <p className="text-sm text-gray-500">Add your first address for faster checkout</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {addresses.map((address) => (
-                      <div key={address._id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className="flex items-center gap-2">
-                              <AiOutlineHome className="w-5 h-5 mt-1" style={{ color: "#8C6141" }} />
-                              {address.isHomeAddress && (
-                                <MdHome className="w-4 h-4 text-green-600" title="Home Address" />
-                              )}
+                      {addresses.length === 0 ? (
+                        <div className="md:col-span-2 text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
+                          <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 mb-4">No addresses saved yet</p>
+                          <button
+                            onClick={() => {
+                              setAddressForm({ street: "", city: "", state: "", pinCode: "", isHomeAddress: false })
+                              setEditingAddressId(null)
+                              setShowAddressForm(true)
+                            }}
+                            className="text-[#5A0117] font-bold hover:underline"
+                          >
+                            Add your first address
+                          </button>
+                        </div>
+                      ) : (
+                        addresses.map(addr => (
+                          <div key={addr._id} className="border border-gray-200 rounded-xl p-5 hover:border-[#5A0117]/50 hover:shadow-lg transition-all group relative">
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => startEditAddress(addr)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteAddress(addr._id)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                            <div style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                              {address.street && <p className="font-medium">{address.street}</p>}
-                              <p>
-                                {address.city}
-                                {address.state && `, ${address.state}`}
-                                {address.pinCode && ` - ${address.pinCode}`}
-                              </p>
-                              {address.isHomeAddress && (
-                                <span className="inline-block mt-1 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                                  Home Address
+
+                            <div className="mb-3">
+                              {addr.isHomeAddress && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wider rounded-md mb-2">
+                                  <Home className="w-3 h-3" /> Home
                                 </span>
                               )}
+                              <p className="font-bold text-gray-800">{addr.city}, {addr.state}</p>
                             </div>
+                            <p className="text-gray-500 text-sm leading-relaxed mb-1">
+                              {addr.street}
+                            </p>
+                            <p className="text-gray-500 text-sm font-mono">
+                              PIN: {addr.pinCode}
+                            </p>
                           </div>
-                          <div className="flex gap-2 ml-4">
-                            <button
-                              onClick={() => handleEditAddress(address)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit Address"
-                            >
-                              <AiOutlineEdit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteAddress(address._id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete Address"
-                            >
-                              <AiOutlineDelete className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
-                <h3 className="text-lg font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                  Quick Actions
-                </h3>
-                <div className="space-y-3">
-                  <Link
-                    href="/orders"
-                    className="block w-full px-4 py-3 text-center border-2 rounded-lg hover:bg-gray-50 transition-colors"
-                    style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-                  >
-                    My Orders
-                  </Link>
-                  <Link
-                    href="/wishlist"
-                    className="block w-full px-4 py-3 text-center border-2 rounded-lg hover:bg-gray-50 transition-colors"
-                    style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-                  >
-                    My Wishlist
-                  </Link>
-                  <Link
-                    href="/cart"
-                    className="block w-full px-4 py-3 text-center text-white rounded-lg hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                  >
-                    My Cart
-                  </Link>
-                </div>
-
-                {/* Address Summary */}
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="text-md font-semibold mb-3" style={{ color: "#5A0117" }}>
-                    Address Summary
-                  </h4>
-                  <div className="text-sm space-y-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                    <div className="flex justify-between">
-                      <span>Total Addresses:</span>
-                      <span className="font-medium">{addressCount}/{maxAddresses}</span>
+                        ))
+                      )}
                     </div>
-                    <div className="flex justify-between">
-                      <span>Home Address:</span>
-                      <span className={addresses.some(addr => addr.isHomeAddress) ? "text-green-600" : "text-orange-600"}>
-                        {addresses.some(addr => addr.isHomeAddress) ? "Set" : "Not Set"}
-                      </span>
-                    </div>
-                    {addressCount < maxAddresses && (
-                      <div className="flex justify-between">
-                        <span>Remaining:</span>
-                        <span className="text-blue-600 font-medium">{maxAddresses - addressCount}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Account Stats */}
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="text-md font-semibold mb-3" style={{ color: "#5A0117" }}>
-                    Account Overview
-                  </h4>
-                  <div className="text-sm space-y-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                    <div className="flex justify-between">
-                      <span>Member since:</span>
-                      <span>{new Date(currentUser?.createdAt || Date.now()).getFullYear()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Account status:</span>
-                      <span className="text-green-600 font-medium">Active</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Email verified:</span>
-                      <span className={currentUser?.emailVerified ? "text-green-600" : "text-orange-600"}>
-                        {currentUser?.emailVerified ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
+
             </div>
+
           </div>
         </div>
       </main>

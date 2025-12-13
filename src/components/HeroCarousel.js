@@ -1,144 +1,201 @@
 "use client"
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import React, { useRef } from 'react'
+import Image from "next/image"
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay, Pagination, Navigation, EffectFade, Parallax } from 'swiper/modules'
+
+// Import Swiper styles
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
+import 'swiper/css/effect-fade'
+
+import { ArrowRight, ArrowLeft } from "lucide-react"
 
 export default function HeroCarousel() {
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const router = useRouter()
+  const progressCircle = useRef(null);
+  const progressContent = useRef(null);
+
+  const onAutoplayTimeLeft = (s, time, progress) => {
+    if (progressCircle.current) {
+      progressCircle.current.style.setProperty('--progress', String(1 - progress));
+    }
+    if (progressContent.current) {
+      progressContent.current.textContent = `${Math.ceil(time / 1000)}s`;
+    }
+  };
 
   const slides = [
     {
       id: "clothing",
       image: "/cloth2.webp",
       link: "/categories/clothing",
-      bgColor: "bg-gradient-to-r from-[#5A0117] to-[#8C6141]",
       title: "Fashion & Clothing",
-      description: "Discover latest trends"
+      subtitle: "Discover Latest Trends",
+      color: "from-[#5A0117]/90 to-[#8C6141]/80",
+      description: "Elevate your style with our premium collection of contemporary fashion."
     },
     {
-      id: "stationery", 
+      id: "stationery",
       image: "/sationary.jpg",
       link: "/categories/stationery",
-      bgColor: "bg-gradient-to-r from-[#DBCCB7] to-[#8C6141]",
       title: "Premium Stationery",
-      description: "Quality writing essentials"
+      subtitle: "Writing Essentials",
+      color: "from-[#8C6141]/90 to-[#DBCCB7]/80",
+      description: "Craft your thoughts with our exquisite range of quality stationery."
     },
     {
       id: "jewellery",
       image: "/jewelery.webp",
-      link: "/categories/jewellery", 
-      bgColor: "bg-gradient-to-r from-[#AFABAA] to-[#5A0117]",
+      link: "/categories/jewellery",
       title: "Elegant Jewellery",
-      description: "Timeless pieces"
+      subtitle: "Timeless Pieces",
+      color: "from-[#AFABAA]/90 to-[#5A0117]/80",
+      description: "Adorn yourself with handcrafted pieces that tell a unique story."
     },
     {
       id: "cosmetics",
       image: "/cosmetic.webp",
       link: "/categories/cosmetics",
-      bgColor: "bg-gradient-to-r from-[#8C6141] to-[#5A0117]",
       title: "Beauty & Cosmetics",
-      description: "Enhance your beauty"
+      subtitle: "Enhance Your Beauty",
+      color: "from-[#5A0117]/80 to-[#E4A0B7]/80",
+      description: "Discover the secret to radiant skin with our tailored beauty solutions."
     },
   ]
 
-  // Handle slide click navigation
-  const handleSlideClick = (slide, index) => {
-    console.log(`Navigating to: ${slide.title} -> ${slide.link}`);
-    router.push(slide.link);
-  }
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [slides.length])
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index)
-  }
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
-
   return (
-    <div className="relative w-full h-[190px] sm:h-[280px] md:h-[320px] lg:h-[360px] overflow-hidden">
-      <div className="relative h-full">
-        {slides.map((slide, index) => {
-          const isActive = index === currentSlide;
-          return (
-            <div
-              key={`slide-${slide.id}-${index}`}
-              className={`absolute inset-0 transition-opacity duration-500 ${
-                isActive ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-              style={{ pointerEvents: isActive ? 'auto' : 'none' }}
-            >
-              <div 
-                className="block w-full h-full cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSlideClick(slide, index);
-                }}
-              >
+    <div className="relative w-full h-[500px] md:h-[550px] lg:h-[650px] group overflow-hidden bg-black">
+      <Swiper
+        spaceBetween={0}
+        centeredSlides={true}
+        speed={1500}
+        parallax={true}
+        effect="fade"
+        autoplay={{
+          delay: 6000,
+          disableOnInteraction: false,
+        }}
+        navigation={{
+          prevEl: '.custom-prev',
+          nextEl: '.custom-next',
+        }}
+        onAutoplayTimeLeft={onAutoplayTimeLeft}
+        modules={[Autoplay, Pagination, Navigation, Parallax, EffectFade]}
+        className="w-full h-full"
+      >
+        {slides.map((slide) => (
+          <SwiperSlide key={slide.id} className="relative w-full h-full overflow-hidden">
 
-                <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${slide.image})` }}>
-                  <div className={`absolute inset-0 ${slide.bgColor} opacity-30`}> 
-                    
-                  </div>
-                  {/* Debug overlay - shows which slide is active */}
-                  {/* <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 text-xs rounded z-20">
-                    Slide {index + 1}: {slide.title} → {slide.link}
-                  </div> */}
-                  {/* Active indicator */}
-                  {/* {isActive && (
-                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 text-xs rounded z-20">
-                      ACTIVE
+            {/* 1. Parallax Background Image using Next.js Image */}
+            <div className="absolute inset-0 w-full h-full" data-swiper-parallax="-20%">
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                fill
+                className="object-cover object-center"
+                priority
+                quality={90}
+              />
+            </div>
+
+            {/* 2. Advanced Overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} mix-blend-multiply opacity-70`} />
+            <div className="absolute inset-0 bg-black/40" />
+
+            {/* 3. Content Layout */}
+            <div className="absolute inset-0 flex items-end px-6 sm:px-12 md:px-20 pb-16 md:pb-20">
+              <div className="max-w-3xl w-full">
+
+                {/* Glassmorphism Card */}
+                <div className="relative p-6 md:p-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-2xl">
+
+                  {/* Decorative accent line */}
+                  <div className="absolute top-0 left-0 w-1 h-full bg-white/40" />
+
+                  <div className="space-y-6" data-swiper-parallax="-300">
+                    {/* Subtitle */}
+                    <div className="flex items-center gap-3">
+                      <span className="h-[1px] w-8 bg-[#DBCCB7]" />
+                      <p
+                        className="text-[#DBCCB7] uppercase tracking-[0.3em] text-xs sm:text-sm font-bold"
+                        style={{ fontFamily: 'Montserrat, sans-serif' }}
+                      >
+                        {slide.subtitle}
+                      </p>
                     </div>
-                  )} */}
-                </div> 
-                
+
+                    {/* Title */}
+                    <h2
+                      className="text-white text-4xl sm:text-5xl md:text-7xl font-bold leading-[0.9] tracking-tighter"
+                      style={{ fontFamily: 'Sugar, serif' }}
+                    >
+                      {slide.title}
+                    </h2>
+
+                    {/* Description */}
+                    <p
+                      className="text-white/80 text-base md:text-xl font-light leading-relaxed max-w-xl"
+                      style={{ fontFamily: 'Montserrat, sans-serif' }}
+                      data-swiper-parallax="-200"
+                    >
+                      {slide.description}
+                    </p>
+
+                    {/* CTA Button */}
+                    <div className="pt-4" data-swiper-parallax="-100">
+                      <Link
+                        href={slide.link}
+                        className="group/btn relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-none overflow-hidden transition-all hover:bg-[#5A0117] hover:text-white"
+                        style={{ fontFamily: 'Montserrat, sans-serif' }}
+                      >
+                        <span className="relative z-10 font-bold uppercase tracking-wider text-sm">Shop Now</span>
+                        <ArrowRight className="w-4 h-4 relative z-10 transition-transform group-hover/btn:translate-x-1" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          )
-        })}
-      </div>
-
-      <button
-        onClick={prevSlide}
-        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#DBCCB7] bg-opacity-80 rounded-full flex items-center justify-center text-[#5A0117] hover:bg-opacity-100 transition-all duration-200 z-20"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-
-      <button
-        onClick={nextSlide}
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-[#DBCCB7] bg-opacity-80 rounded-full flex items-center justify-center text-[#5A0117] hover:bg-opacity-100 transition-all duration-200 z-20"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${
-              index === currentSlide ? "bg-[#DBCCB7] scale-125" : "bg-[#DBCCB7] bg-opacity-50 hover:bg-opacity-75"
-            }`}
-          />
+          </SwiperSlide>
         ))}
-      </div>
+
+        {/* 4. Professional Navigation UI */}
+        <div className="absolute bottom-10 right-10 z-20 flex items-center gap-6">
+
+          {/* Navigation Arrows */}
+          <div className="flex gap-2">
+            <button className="custom-prev w-12 h-12 flex items-center justify-center border border-white/20 bg-black/20 backdrop-blur-sm text-white hover:bg-white hover:text-black transition-all rounded-full cursor-pointer">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button className="custom-next w-12 h-12 flex items-center justify-center border border-white/20 bg-black/20 backdrop-blur-sm text-white hover:bg-white hover:text-black transition-all rounded-full cursor-pointer">
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Autoplay Progress Circle */}
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
+              <circle
+                cx="24" cy="24" r="20"
+                className="stroke-white/10 fill-none"
+                strokeWidth="2"
+              />
+              <circle
+                ref={progressCircle}
+                cx="24" cy="24" r="20"
+                className="stroke-white fill-none"
+                strokeWidth="2"
+                strokeDasharray="125.6"
+                strokeDashoffset="calc(125.6px * (1 - var(--progress)))"
+              />
+            </svg>
+            <span ref={progressContent} className="absolute text-[10px] font-bold text-white"></span>
+          </div>
+        </div>
+
+      </Swiper>
     </div>
   )
 }

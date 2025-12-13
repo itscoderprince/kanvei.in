@@ -11,7 +11,8 @@ import { getClientIP, getUserAgent } from "@/lib/clientInfo"
 
 
 export const authOptions = {
-  
+  debug: false, // Enable debug messages for NextAuth
+
   providers: [
     // 1️⃣ Custom Credentials Provider
     CredentialsProvider({
@@ -23,7 +24,7 @@ export const authOptions = {
       async authorize(credentials) {
         try {
           const { email, password } = credentials
-          
+
           if (!email || !password) {
             return null
           }
@@ -56,12 +57,12 @@ export const authOptions = {
           // }
 
           console.log("✅ User authenticated successfully:", email)
-          return { 
-            id: user._id.toString(), 
-            email: user.email, 
+          return {
+            id: user._id.toString(),
+            email: user.email,
             name: user.name,
             role: user.role,
-            phone: user.phone 
+            phone: user.phone
           }
         } catch (error) {
           console.error("❌ Authorization error:", error)
@@ -127,7 +128,7 @@ export const authOptions = {
         if (!existingUser) {
           console.log("🆕 Creating new user:", user.email)
           isNewUser = true
-          
+
           // Create new user based on provider
           const userData = {
             name: user.name || profile?.name || "Unknown User",
@@ -145,7 +146,7 @@ export const authOptions = {
           await User.create(userData)
         } else {
           console.log("👤 Existing user found:", user.email)
-          
+
           // Update provider IDs if not already set
           const updateData = {}
           if (account.provider === "google" && !existingUser.googleId) {
@@ -160,13 +161,13 @@ export const authOptions = {
         }
 
         // Send login notification for ALL logins (including first-time social logins)
-        const loginType = account.provider === 'google' ? 'Google' : 
-                         account.provider === 'facebook' ? 'Facebook' : 
-                         account.provider === 'credentials' ? 'Email/Password' : 'Unknown'
-        
+        const loginType = account.provider === 'google' ? 'Google' :
+          account.provider === 'facebook' ? 'Facebook' :
+            account.provider === 'credentials' ? 'Email/Password' : 'Unknown'
+
         const notificationType = isNewUser ? 'First Time Login' : 'Login'
         console.log(`📧 Sending ${notificationType.toLowerCase()} notification for ${loginType} login to:`, user.email)
-        
+
         try {
           await sendLoginNotificationEmail(
             user.email,

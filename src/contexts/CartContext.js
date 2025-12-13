@@ -11,7 +11,7 @@ export function CartProvider({ children }) {
   const { user: authUser, isAuthenticated: customAuth, token: authToken } = useAuth()
   const { showSuccess, showError, showWarning } = useNotification()
   const [cartData, setCartData] = useState({ items: [], totalItems: 0, totalAmount: 0 })
-  
+
   const [loading, setLoading] = useState(false)
 
   // Determine if user is logged in via any method
@@ -21,7 +21,7 @@ export function CartProvider({ children }) {
   // Fetch cart from database
   const fetchCart = useCallback(async () => {
     if (!currentUserId) return
-    
+
     try {
       setLoading(true)
       // Set up headers for custom auth
@@ -29,10 +29,10 @@ export function CartProvider({ children }) {
       if (authToken && authToken !== 'nextauth_session') {
         headers.Authorization = `Bearer ${authToken}`
       }
-      
+
       const response = await fetch('/api/cart', { headers })
       const data = await response.json()
-      
+
       if (response.ok) {
         setCartData(data.cart || { items: [], totalItems: 0, totalAmount: 0 })
       } else {
@@ -46,13 +46,15 @@ export function CartProvider({ children }) {
   }, [currentUserId, authToken])
 
   // Load cart from database when user logs in
+  // Only trigger when the ID actually changes, not when the session object refreshes
   useEffect(() => {
-    if (isUserLoggedIn && currentUserId) {
+    if (currentUserId) {
+      console.log('🛒 User ID changed, fetching cart:', currentUserId)
       fetchCart()
-    } else if (!isUserLoggedIn) {
+    } else {
       setCartData({ items: [], totalItems: 0, totalAmount: 0 })
     }
-  }, [session, status, authUser, customAuth, isUserLoggedIn, currentUserId, fetchCart])
+  }, [currentUserId, fetchCart])
 
   // Add item to cart (DB operation)
   const addToCart = useCallback(async (product, quantity = 1, productOption = null) => {
@@ -64,11 +66,11 @@ export function CartProvider({ children }) {
 
     try {
       setLoading(true)
-      
+
       const payload = {
         quantity
       }
-      
+
       if (productOption) {
         payload.productOptionId = productOption.id || productOption._id
       } else {
@@ -91,21 +93,16 @@ export function CartProvider({ children }) {
 
       if (response.ok) {
         setCartData(data.cart || { items: [], totalItems: 0, totalAmount: 0 })
-        
-        // Show success notification when adding to cart
-        if (data.updated) {
-          showSuccess(data.message || 'Item quantity updated in cart!')
-        } else {
-          showSuccess('Item added to cart successfully! 🛍️')
-        }
+
+
         return true
       } else {
-        showError(data.error || 'Failed to add item to cart')
+
         return false
       }
     } catch (error) {
       console.error('Error adding to cart:', error)
-      showError('Failed to add item to cart')
+
       return false
     } finally {
       setLoading(false)
@@ -126,7 +123,7 @@ export function CartProvider({ children }) {
       if (authToken && authToken !== 'nextauth_session') {
         headers.Authorization = `Bearer ${authToken}`
       }
-      
+
       const response = await fetch(`/api/cart?cartItemId=${cartItemId}`, {
         method: 'DELETE',
         headers
@@ -136,7 +133,7 @@ export function CartProvider({ children }) {
 
       if (response.ok) {
         setCartData(data.cart || { items: [], totalItems: 0, totalAmount: 0 })
-        
+
         showSuccess('Item removed from cart')
         return true
       } else {
@@ -152,8 +149,8 @@ export function CartProvider({ children }) {
     }
   }, [isUserLoggedIn, authToken, showSuccess, showError, showWarning])
 
-  // Update quantity (DB operation)
-  const updateQuantity = useCallback(async (cartItemId, quantity) => {
+  // Update quantity (DB operation with Optimistic UI)
+  const updateQuantity = useCallback(async (cartItemId, quantity, options = { showNotification: true }) => {
     if (!isUserLoggedIn) {
       showWarning("Please login to modify cart")
       return false
@@ -166,14 +163,34 @@ export function CartProvider({ children }) {
       return false
     }
 
+    // 1. Optimistic Update
+    const previousCartData = { ...cartData }
+    setCartData(prev => {
+      const newItems = prev.items.map(item =>
+        item._id === cartItemId ? { ...item, quantity } : item
+      )
+
+      // Calculate new totals client-side for instant feedback
+      const newTotalItems = newItems.reduce((acc, item) => acc + item.quantity, 0)
+      const newTotalAmount = newItems.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+
+      return {
+        items: newItems,
+        totalItems: newTotalItems,
+        totalAmount: newTotalAmount
+      }
+    })
+
     try {
-      setLoading(true)
+      // Don't set global loading state to avoid freezing UI
+      // setLoading(true) 
+
       // Set up headers for custom auth
       const headers = { 'Content-Type': 'application/json' }
       if (authToken && authToken !== 'nextauth_session') {
         headers.Authorization = `Bearer ${authToken}`
       }
-      
+
       console.log('🔄 Updating cart quantity:', { cartItemId, quantity })
       const response = await fetch('/api/cart', {
         method: 'PUT',
@@ -182,38 +199,50 @@ export function CartProvider({ children }) {
       })
 
       const data = await response.json()
-      console.log('🌐 API Response:', { status: response.status, data })
 
       if (response.ok) {
-        setCartData(data.cart || { items: [], totalItems: 0, totalAmount: 0 })
-        
-        if (quantity === 0) {
-          showSuccess('Item removed from cart')
-        } else {
-          showSuccess('Quantity updated')
+        // Confirm with server data (optional, ensures consistency)
+        // MERGE LOGIC: Preserve images if missing in response (safety net)
+        const newItems = (data.cart?.items || []).map(newItem => {
+          const oldItem = previousCartData.items.find(i => i._id === newItem._id)
+          if (oldItem && (!newItem.image || newItem.image === '')) {
+            return { ...newItem, image: oldItem.image }
+          }
+          return newItem
+        })
+
+        setCartData({
+          ...data.cart,
+          items: newItems,
+          totalItems: data.cart?.totalItems || 0,
+          totalAmount: data.cart?.totalAmount || 0
+        })
+
+        if (options.showNotification) {
+          if (quantity === 0) {
+            showSuccess('Item removed from cart')
+          } else {
+            showSuccess('Quantity updated')
+          }
         }
         return true
       } else {
-        console.error('❌ API Error:', { 
-          status: response.status, 
-          statusText: response.statusText, 
-          error: data.error,
-          fullResponse: data 
-        })
+        // Revert on error
+        console.error('❌ API Error, reverting:', data.error)
+        setCartData(previousCartData)
         showError(data.error || 'Failed to update quantity')
         return false
       }
     } catch (error) {
-      console.error('Error updating quantity:', error)
+      console.error('Error updating quantity, reverting:', error)
+      setCartData(previousCartData)
       showError('Failed to update quantity')
       return false
-    } finally {
-      setLoading(false)
     }
-  }, [isUserLoggedIn, authToken, showSuccess, showError, showWarning])
+  }, [isUserLoggedIn, authToken, showSuccess, showError, showWarning, cartData])
 
   // Clear cart (DB operation)
-  const clearCart = useCallback(async () => {
+  const clearCart = useCallback(async (options = { showNotification: true }) => {
     if (!isUserLoggedIn) {
       showWarning("Please login to clear cart")
       return false
@@ -226,7 +255,7 @@ export function CartProvider({ children }) {
       if (authToken && authToken !== 'nextauth_session') {
         headers.Authorization = `Bearer ${authToken}`
       }
-      
+
       const response = await fetch('/api/cart?clearAll=true', {
         method: 'DELETE',
         headers
@@ -236,7 +265,9 @@ export function CartProvider({ children }) {
 
       if (response.ok) {
         setCartData({ items: [], totalItems: 0, totalAmount: 0 })
-        showSuccess('Cart cleared successfully')
+        if (options.showNotification) {
+          showSuccess('Cart cleared successfully')
+        }
         return true
       } else {
         showError(data.error || 'Failed to clear cart')
@@ -265,7 +296,7 @@ export function CartProvider({ children }) {
     if (!cartData.items || !Array.isArray(cartData.items)) {
       return { inCart: false, quantity: 0 }
     }
-    
+
     const item = cartData.items.find(item => {
       if (productOptionId) {
         return item.productOptionId === productOptionId || item.productOption?._id === productOptionId
@@ -277,7 +308,7 @@ export function CartProvider({ children }) {
         )
       }
     })
-    
+
     return {
       inCart: !!item,
       quantity: item?.quantity || 0,

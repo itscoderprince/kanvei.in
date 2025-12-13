@@ -2,13 +2,12 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "../contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useToast } from "../contexts/ToastContext"
-import { AiOutlineHome, AiOutlinePlus, AiOutlineEdit, AiOutlineSave, AiOutlineClose } from "react-icons/ai"
-import { MdLocationOn, MdHome } from "react-icons/md"
+import toast from "react-hot-toast"
+import { Plus, MapPin, Home, Briefcase, Trash2, Edit2, CheckCircle, Smartphone, User } from "lucide-react"
 
-export default function AddressSelector({ 
-  selectedAddress, 
-  onAddressSelect, 
+export default function AddressSelector({
+  selectedAddress,
+  onAddressSelect,
   onManualAddress,
   showManualForm = false,
   manualFormData = {},
@@ -16,8 +15,7 @@ export default function AddressSelector({
 }) {
   const { data: session } = useSession()
   const { user: authUser, isAuthenticated: customAuth, token: authToken } = useAuth()
-  const { showSuccess, showError } = useToast()
-  
+
   const [addresses, setAddresses] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -72,7 +70,7 @@ export default function AddressSelector({
 
   const handleAddAddress = async () => {
     if (!newAddress.city.trim()) {
-      showError('City is required')
+      toast.error('City is required')
       return
     }
 
@@ -100,23 +98,23 @@ export default function AddressSelector({
           pinCode: "",
           isHomeAddress: false
         })
-        showSuccess('Address added successfully!')
-        
+        toast.success('Address added successfully!')
+
         // Auto-select the new address
-        const newAddr = data.addresses?.find(addr => 
-          addr.street === newAddress.street && 
-          addr.city === newAddress.city && 
+        const newAddr = data.addresses?.find(addr =>
+          addr.street === newAddress.street &&
+          addr.city === newAddress.city &&
           addr.pinCode === newAddress.pinCode
         )
         if (newAddr) {
           onAddressSelect(newAddr)
         }
       } else {
-        showError(data.error || 'Failed to add address')
+        toast.error(data.error || 'Failed to add address')
       }
     } catch (error) {
       console.error('Error adding address:', error)
-      showError('Failed to add address')
+      toast.error('Failed to add address')
     } finally {
       setSaving(false)
     }
@@ -133,12 +131,12 @@ export default function AddressSelector({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-16 bg-gray-200 rounded"></div>
-            <div className="h-16 bg-gray-200 rounded"></div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-100 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="h-24 bg-gray-100 rounded-xl"></div>
+            <div className="h-24 bg-gray-100 rounded-xl"></div>
           </div>
         </div>
       </div>
@@ -146,252 +144,215 @@ export default function AddressSelector({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold flex items-center gap-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-          <MdLocationOn className="w-6 h-6" />
+        <h2 className="text-lg font-bold flex items-center gap-2" style={{ fontFamily: "Sugar, serif", color: "#1F2937" }}>
+          <MapPin className="w-5 h-5 text-[#5A0117]" />
           Delivery Address
         </h2>
-        {isUserAuthenticated && addresses.length < 3 && (
+
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-3 py-1 text-sm border-2 rounded-lg hover:bg-gray-50 transition-colors"
-            style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
+            onClick={() => onManualAddress(!showManualForm)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            <AiOutlinePlus className="w-4 h-4" />
-            Add New
+            <Edit2 className="w-3.5 h-3.5" />
+            {showManualForm ? 'Hide Manual' : 'Manual Entry'}
           </button>
-        )}
+
+          {isUserAuthenticated && (
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A0117] bg-red-50 hover:bg-red-100 rounded-full transition-colors"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              <Plus className="w-4 h-4" />
+              Add Address
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add New Address Form */}
       {showAddForm && (
-        <div className="mb-6 p-4 border rounded-lg" style={{ backgroundColor: "#f8f9fa" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#5A0117" }}>
-              Add New Address
-            </h3>
-            <div className="flex gap-2">
-              <button
-                onClick={handleAddAddress}
-                disabled={saving}
-                className="flex items-center gap-2 px-3 py-1 text-sm text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-              >
-                <AiOutlineSave className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-              <button
-                onClick={() => setShowAddForm(false)}
-                className="flex items-center gap-2 px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
-                style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-              >
-                <AiOutlineClose className="w-4 h-4" />
-                Cancel
-              </button>
-            </div>
-          </div>
+        <div className="mb-6 p-5 border border-gray-200 rounded-xl bg-gray-50/50">
+          <h3 className="text-sm font-bold text-gray-900 mb-4">New Address Details</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                Street Address
-              </label>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Street Address</label>
               <textarea
                 value={newAddress.street}
                 onChange={(e) => setNewAddress(prev => ({ ...prev, street: e.target.value }))}
                 rows="2"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter street address"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                placeholder="Flat No, Building, Street Area"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                City *
-              </label>
-              <input
-                type="text"
-                value={newAddress.city}
-                onChange={(e) => setNewAddress(prev => ({ ...prev, city: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter city"
-                required
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">City</label>
+                <input
+                  type="text"
+                  value={newAddress.city}
+                  onChange={(e) => setNewAddress(prev => ({ ...prev, city: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">State</label>
+                <input
+                  type="text"
+                  value={newAddress.state}
+                  onChange={(e) => setNewAddress(prev => ({ ...prev, state: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                  placeholder="State"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                State
-              </label>
-              <input
-                type="text"
-                value={newAddress.state}
-                onChange={(e) => setNewAddress(prev => ({ ...prev, state: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter state"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                PIN Code
-              </label>
-              <input
-                type="text"
-                value={newAddress.pinCode}
-                onChange={(e) => setNewAddress(prev => ({ ...prev, pinCode: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter PIN code"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2">
+
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">PIN Code</label>
+                <input
+                  type="text"
+                  value={newAddress.pinCode}
+                  onChange={(e) => setNewAddress(prev => ({ ...prev, pinCode: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                  placeholder="Six Digit PIN"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer mt-5">
                 <input
                   type="checkbox"
                   checked={newAddress.isHomeAddress}
                   onChange={(e) => setNewAddress(prev => ({ ...prev, isHomeAddress: e.target.checked }))}
-                  className="rounded border-gray-300"
+                  className="rounded text-[#5A0117] focus:ring-[#5A0117]"
                 />
-                <span className="text-sm font-medium" style={{ color: "#5A0117" }}>
-                  Mark as Home Address
-                </span>
+                <span className="text-sm text-gray-700">Set as default address</span>
               </label>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handleAddAddress}
+                disabled={saving}
+                className="flex-1 bg-[#5A0117] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#720e26] transition-colors disabled:opacity-70"
+              >
+                {saving ? 'Saving...' : 'Save Address'}
+              </button>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Saved Addresses */}
+      {/* Saved Addresses List */}
       {isUserAuthenticated && addresses.length > 0 && (
         <div className="space-y-3 mb-6">
-          <h3 className="text-sm font-medium" style={{ color: "#5A0117" }}>
-            Select from saved addresses:
-          </h3>
           {addresses.map((address) => (
-            <label key={address._id} className="block">
-              <div className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                selectedAddress?._id === address._id 
-                  ? 'border-red-500 bg-red-50' 
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}>
-                <div className="flex items-start gap-3">
-                  <input
-                    type="radio"
-                    name="selectedAddress"
-                    value={address._id}
-                    checked={selectedAddress?._id === address._id}
-                    onChange={() => onAddressSelect(address)}
-                    className="mt-1"
-                    style={{ accentColor: "#5A0117" }}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <AiOutlineHome className="w-4 h-4" style={{ color: "#8C6141" }} />
-                      {address.isHomeAddress && (
-                        <MdHome className="w-4 h-4 text-green-600" title="Home Address" />
-                      )}
-                      {address.isHomeAddress && (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                          Home
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                      {formatAddress(address)}
-                    </p>
+            <div
+              key={address._id}
+              onClick={() => onAddressSelect(address)}
+              className={`relative p-4 border rounded-xl cursor-pointer transition-all duration-200 group ${selectedAddress?._id === address._id
+                ? 'border-[#5A0117] bg-red-50/30 ring-1 ring-[#5A0117]'
+                : 'border-gray-200 hover:border-[#5A0117]/50 hover:shadow-sm'
+                }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${selectedAddress?._id === address._id
+                  ? 'border-[#5A0117] bg-[#5A0117]'
+                  : 'border-gray-300'
+                  }`}>
+                  {selectedAddress?._id === address._id && <div className="w-2 h-2 bg-white rounded-full" />}
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-sm text-gray-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                      {address.isHomeAddress ? 'Home' : 'Work/Other'}
+                    </span>
+                    {address.isHomeAddress && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#5A0117] text-white rounded">
+                        DEFAULT
+                      </span>
+                    )}
                   </div>
+                  <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    {formatAddress(address)}
+                  </p>
                 </div>
               </div>
-            </label>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Manual Address Option */}
-      {(!isUserAuthenticated || addresses.length === 0) && (
-        <div className="mb-4">
-          <button
-            onClick={() => onManualAddress(!showManualForm)}
-            className="flex items-center gap-2 text-sm font-medium"
-            style={{ color: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-          >
-            <AiOutlineEdit className="w-4 h-4" />
-            {showManualForm ? 'Hide Manual Entry' : 'Enter Address Manually'}
-          </button>
-        </div>
-      )}
+      {/* Manual Address Toggle */}
+
 
       {/* Manual Address Form */}
       {showManualForm && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold" style={{ color: "#5A0117" }}>
-            Enter Delivery Address
-          </h3>
-          
+        <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#5A0117" }}>
-                Full Address *
-              </label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Full Address *</label>
               <textarea
                 name="address"
                 value={manualFormData.address || ""}
                 onChange={onManualFormChange}
                 required
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter complete address"
+                rows={2}
+                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                placeholder="House No, Street, Area"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#5A0117" }}>
-                City *
-              </label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">City *</label>
               <input
                 type="text"
                 name="city"
                 value={manualFormData.city || ""}
                 onChange={onManualFormChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter city"
+                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                placeholder="City"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#5A0117" }}>
-                State *
-              </label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">State *</label>
               <input
                 type="text"
                 name="state"
                 value={manualFormData.state || ""}
                 onChange={onManualFormChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter state"
+                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                placeholder="State"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "#5A0117" }}>
-                PIN Code *
-              </label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">PIN Code *</label>
               <input
                 type="text"
                 name="pincode"
                 value={manualFormData.pincode || ""}
                 onChange={onManualFormChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRingColor: "#5A0117" }}
-                placeholder="Enter PIN code"
+                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-[#5A0117] focus:ring-1 focus:ring-[#5A0117]"
+                placeholder="PIN Code"
               />
             </div>
           </div>
@@ -399,10 +360,14 @@ export default function AddressSelector({
       )}
 
       {!isUserAuthenticated && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm" style={{ color: "#2563eb", fontFamily: "Montserrat, sans-serif" }}>
-            💡 <strong>Tip:</strong> Login to save addresses for faster checkout in future orders.
-          </p>
+        <div className="mt-6 p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex gap-3">
+          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <User className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-blue-800">Save time on your next order</h4>
+            <p className="text-xs text-blue-600 mt-0.5">Log in to save your address securely for faster checkout.</p>
+          </div>
         </div>
       )}
     </div>

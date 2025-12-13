@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Script from "next/script"
+import { User, Mail, Phone, CreditCard, Banknote, ShieldCheck, Truck, Lock } from "lucide-react"
+import toast from "react-hot-toast"
+
 import Header from "../../components/shared/Header"
 import Footer from "../../components/shared/Footer"
 import CartSummary from "../../components/CartSummary"
@@ -11,27 +14,25 @@ import CouponSection from "../../components/CouponSection"
 import { useCart } from "../../contexts/CartContext"
 import { useAuth } from "../../contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useToast } from "../../contexts/ToastContext"
 import { useNotification } from "../../contexts/NotificationContext"
 
 export default function CheckoutPage() {
   const { items, getCartTotal, clearCart } = useCart()
   const { data: session } = useSession()
   const { user: authUser, isAuthenticated: customAuth, token: authToken } = useAuth()
-  const { showSuccess, showError, showWarning } = useToast()
-  const { showNotification } = useNotification()
+  const { showNotification } = useNotification() // Preserved but unused, keeping for compatibility
   const router = useRouter()
-  
+
   const [loading, setLoading] = useState(false)
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [scriptLoadTimeout, setScriptLoadTimeout] = useState(false)
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [showManualForm, setShowManualForm] = useState(false)
   const [appliedCoupon, setAppliedCoupon] = useState(null)
-  
+
   const currentUser = session?.user || authUser
   const isUserAuthenticated = (session?.status === "authenticated") || customAuth
-  
+
   const [formData, setFormData] = useState({
     // Customer Information
     name: "",
@@ -45,20 +46,17 @@ export default function CheckoutPage() {
     // Payment Information
     paymentMethod: "cod",
   })
-  
+
   // Check if Razorpay script is already loaded or set timeout
   useEffect(() => {
-    // Check if Razorpay is already available (cached)
     if (typeof window !== 'undefined' && window.Razorpay) {
       setRazorpayLoaded(true)
       return
     }
 
-    // Set timeout for script loading (5 seconds)
     const timeout = setTimeout(() => {
       if (!razorpayLoaded) {
         setScriptLoadTimeout(true)
-        // Try to check again if Razorpay is available
         if (typeof window !== 'undefined' && window.Razorpay) {
           setRazorpayLoaded(true)
           setScriptLoadTimeout(false)
@@ -67,12 +65,12 @@ export default function CheckoutPage() {
     }, 5000)
 
     return () => clearTimeout(timeout)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load user profile data for authenticated users
   useEffect(() => {
     if (!isUserAuthenticated || !currentUser) return
-    
+
     const fetchUserProfile = async () => {
       try {
         const headers = { 'Content-Type': 'application/json' }
@@ -95,7 +93,7 @@ export default function CheckoutPage() {
         console.error('Error fetching user profile:', error)
       }
     }
-    
+
     fetchUserProfile()
   }, [isUserAuthenticated, currentUser, authToken])
 
@@ -109,7 +107,6 @@ export default function CheckoutPage() {
   const calculateTotal = () => {
     const subtotal = getCartTotal()
     const shipping = 0 // Always free shipping
-    // No GST calculation - tax is already included in product prices
     return subtotal + shipping
   }
 
@@ -122,26 +119,26 @@ export default function CheckoutPage() {
 
   const handleCouponApply = (couponData) => {
     setAppliedCoupon(couponData)
-    showSuccess(`🎉 Coupon ${couponData.coupon.code} applied! You saved ₹${couponData.discount.discountAmount}`)
+    toast.success(`🎉 Coupon ${couponData.coupon.code} applied! You saved ₹${couponData.discount.discountAmount}`)
   }
 
   const handleCouponRemove = () => {
     setAppliedCoupon(null)
-    showSuccess('Coupon removed')
+    toast.success('Coupon removed')
   }
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address)
     setShowManualForm(false)
   }
-  
+
   const handleManualFormToggle = (show) => {
     setShowManualForm(show)
     if (show) {
       setSelectedAddress(null)
     }
   }
-  
+
   const getShippingAddress = () => {
     if (selectedAddress) {
       return {
@@ -151,7 +148,7 @@ export default function CheckoutPage() {
         state: selectedAddress.state || '',
         pincode: selectedAddress.pinCode || '',
         phone: formData.phone,
-        addressId: selectedAddress._id // Include address ID for reference
+        addressId: selectedAddress._id
       }
     } else {
       return {
@@ -164,152 +161,43 @@ export default function CheckoutPage() {
       }
     }
   }
-  
+
   const validateForm = () => {
     if (!formData.name.trim()) {
-      showError('Full name is required')
+      toast.error('Full name is required')
       return false
     }
     if (!formData.email.trim()) {
-      showError('Email is required')
+      toast.error('Email is required')
       return false
     }
     if (!formData.phone.trim()) {
-      showWarning('📞 Mobile number is mandatory for delivery contact. Please provide your contact number to ensure smooth delivery.')
+      toast.error('📞 Mobile number is mandatory for delivery contact.')
       return false
     }
-    
-    // Validate phone number format (basic validation)
+
     const phoneRegex = /^[+]?[0-9]{10,15}$/
     if (!phoneRegex.test(formData.phone.replace(/\s+/g, ''))) {
-      showError('Please enter a valid mobile number (10-15 digits)')
+      toast.error('Please enter a valid mobile number')
       return false
     }
-    
+
     if (selectedAddress) {
-      // Using saved address, only need customer details
       return true
     } else if (showManualForm) {
-      // Using manual address form
       if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.pincode.trim()) {
-        showError('All address fields are required')
+        toast.error('All address fields are required')
         return false
       }
       return true
     } else {
-      showError('Please select an address or enter address manually')
+      toast.error('Please select an address or enter address manually')
       return false
     }
   }
 
-  const handleCODOrder = async (e) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
-    
-    setLoading(true)
-
-    try {
-      const orderData = {
-        items: items.map((item) => {
-          console.log('🛒 CART ITEM MAPPING:', {
-            itemId: item._id,
-            itemType: item.itemType,
-            isOption: item.isOption,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            productId: item.product?._id,
-            productOptionId: item.productOptionId,
-            size: item.size,
-            color: item.color,
-            fullItem: item
-          })
-          
-          // For product options (from cart with isOption: true)
-          if (item.isOption && item.productOptionId) {
-            return {
-              productId: item.productOption?._id || item.productOptionId,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              itemType: 'productOption',
-              size: item.size,
-              color: item.color
-            }
-          }
-          
-          // For main products
-          return {
-            productId: item.product?._id || item._id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            itemType: 'product'
-          }
-        }),
-        totalAmount: getFinalTotal(),
-        originalAmount: appliedCoupon ? calculateTotal() : null,
-        discountAmount: appliedCoupon ? appliedCoupon.discount.discountAmount : 0,
-        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null,
-        couponId: appliedCoupon ? appliedCoupon.coupon._id : null,
-        customerEmail: formData.email,
-        userId: currentUser?._id || currentUser?.id, // Add userId if user is logged in
-        shippingAddress: getShippingAddress(),
-        paymentMethod: "cod",
-        paymentStatus: "pending",
-        status: "pending",
-      }
-
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        clearCart()
-        showSuccess('🎉 Order placed successfully! You will pay on delivery.')
-        router.push(`/order-confirmation?orderId=${data.orderId}`)
-      } else {
-        showError('❌ Error placing order: ' + data.error)
-      }
-    } catch (error) {
-      console.error("Error placing order:", error)
-      showError('❌ Error placing order. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleRazorpaySuccess = (orderId) => {
-    clearCart()
-    showSuccess('💳 Payment successful! Your order has been confirmed.')
-    router.push(`/order-confirmation?orderId=${orderId}`)
-  }
-
-  const handleRazorpayError = (error) => {
-    showError('💳 Payment failed: ' + error)
-  }
-
+  // Helper to map cart items consistently
   const getCartItems = () => items.map((item) => {
-    console.log('🎁 RAZORPAY CART ITEM MAPPING:', {
-      itemId: item._id,
-      itemType: item.itemType,
-      isOption: item.isOption,
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-      productId: item.product?._id,
-      productOptionId: item.productOptionId,
-      size: item.size,
-      color: item.color
-    })
-    
     // For product options (from cart with isOption: true)
     if (item.isOption && item.productOptionId) {
       return {
@@ -322,41 +210,103 @@ export default function CheckoutPage() {
         color: item.color
       }
     }
-    
     // For main products
+    // Robustly extract product ID handling populated object or direct ID string
+    const pid = item.product?._id || (typeof item.product === 'string' ? item.product : null) || item.productId
+
     return {
-      productId: item.product?._id || item._id,
+      productId: pid,
       name: item.name,
       price: item.price,
       quantity: item.quantity,
       itemType: 'product'
     }
   })
-  
+
+  // Required for Razorpay button prop compatibility
   const getOrderData = () => ({
     customerEmail: formData.email,
     userId: currentUser?._id || currentUser?.id,
     shippingAddress: getShippingAddress(),
   })
 
+  const handleCODOrder = async (e) => {
+    e.preventDefault()
+
+    if (!validateForm()) return
+
+    setLoading(true)
+
+    try {
+      const orderData = {
+        items: getCartItems(), // OPTIMIZED: Reusing the helper function
+        totalAmount: getFinalTotal(),
+        originalAmount: appliedCoupon ? calculateTotal() : null,
+        discountAmount: appliedCoupon ? appliedCoupon.discount.discountAmount : 0,
+        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null,
+        couponId: appliedCoupon ? appliedCoupon.coupon._id : null,
+        customerEmail: formData.email,
+        userId: currentUser?._id || currentUser?.id,
+        shippingAddress: getShippingAddress(),
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        status: "pending",
+      }
+
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        clearCart({ showNotification: false })
+        toast.success('🎉 Order placed successfully! You will pay on delivery.')
+        router.push(`/order-confirmation?orderId=${data.orderId}`)
+      } else {
+        toast.error('❌ Error placing order: ' + data.error)
+      }
+    } catch (error) {
+      console.error("Error placing order:", error)
+      toast.error('❌ Error placing order. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRazorpaySuccess = (orderId) => {
+    clearCart({ showNotification: false })
+    toast.success('💳 Payment successful! Your order has been confirmed.')
+    router.push(`/order-confirmation?orderId=${orderId}`)
+  }
+
+  const handleRazorpayError = (error) => {
+    toast.error('💳 Payment failed: ' + error)
+  }
+
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full border border-gray-100">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
+              <Truck className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold mb-3" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
               Your cart is empty
             </h1>
-            <p className="mb-6" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Add some items to your cart before checkout.
+            <p className="text-gray-500 mb-8" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Looks like you haven't added anything yet.
             </p>
             <button
               onClick={() => router.push("/products")}
-              className="px-6 py-3 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+              className="w-full py-3.5 text-white font-semibold rounded-xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
             >
-              Continue Shopping
+              Start Shopping
             </button>
           </div>
         </main>
@@ -367,8 +317,8 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Script 
-        src="https://checkout.razorpay.com/v1/checkout.js" 
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
         onLoad={() => {
           setRazorpayLoaded(true)
           setScriptLoadTimeout(false)
@@ -380,231 +330,305 @@ export default function CheckoutPage() {
         strategy="lazyOnload"
       />
 
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
         <Header />
 
-        <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                Checkout
-              </h1>
-              <p className="mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                Complete your order
-              </p>
+
+            {/* Page Header */}
+            <div className="mb-4 flex items-end justify-between border-b border-gray-200 pb-6">
+              <div>
+                <h1 className="text-3xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+                  Secure Checkout
+                </h1>
+                <p className="mt-2 text-sm text-gray-600 flex items-center gap-2" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  <Lock className="w-4 h-4 text-green-600" />
+                  Your transaction is secured with SSL encryption
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Checkout Form */}
-              <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+
+              {/* Left Column - Checkout Form */}
+              <div className="lg:col-span-8 space-y-8">
                 <form onSubmit={handleCODOrder} className="space-y-8">
-                  {/* Customer Information */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                      Customer Information
-                    </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label
-                          className="block text-sm font-semibold mb-2"
-                          style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}
-                        >
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                        />
+                  {/* 1. Customer Information */}
+                  <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#5A0117] text-white flex items-center justify-center font-bold text-sm">1</div>
+                      <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
+                        Contact Information
+                      </h2>
+                    </div>
+
+                    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-3.5 w-4 h-4 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#5A0117]/20 focus:outline-none transition-all placeholder-gray-400 font-medium text-gray-800"
+                            placeholder="John Doe"
+                          />
+                        </div>
                       </div>
 
-                      <div>
-                        <label
-                          className="block text-sm font-semibold mb-2"
-                          style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}
-                        >
-                          Email *
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                        />
+                      <div className="group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-3.5 w-4 h-4 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                          <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#5A0117]/20 focus:outline-none transition-all placeholder-gray-400 font-medium text-gray-800"
+                            placeholder="john@example.com"
+                          />
+                        </div>
                       </div>
 
-                      <div className="md:col-span-2">
-                        <label
-                          className="block text-sm font-semibold mb-2"
-                          style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}
-                        >
-                          Phone Number * 
-                          <span className="text-xs font-normal text-gray-600">(Required for delivery contact)</span>
-                        </label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="Enter your mobile number (e.g., +91 8876543910)"
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                          style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                        />
-                        <p className="mt-1 text-xs" style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}>
-                          📱 We will use this number to coordinate delivery with you
+                      <div className="md:col-span-2 group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mobile Number</label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-3.5 w-4 h-4 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#5A0117]/20 focus:outline-none transition-all placeholder-gray-400 font-medium text-gray-800"
+                            placeholder="+91 98765 43210"
+                          />
+                        </div>
+                        <p className="mt-2 text-xs text-amber-700 flex items-center gap-1.5 font-medium bg-amber-50 inline-block px-2 py-1 rounded-md">
+                          Details for order updates and delivery coordination.
                         </p>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Address Selector */}
-                  <AddressSelector
-                    selectedAddress={selectedAddress}
-                    onAddressSelect={handleAddressSelect}
-                    onManualAddress={handleManualFormToggle}
-                    showManualForm={showManualForm}
-                    manualFormData={formData}
-                    onManualFormChange={handleInputChange}
-                  />
+                  </section>
 
-                  {/* Payment Method */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                      Payment Method
-                    </h2>
-
-                    <div className="space-y-4">
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="cod"
-                          checked={formData.paymentMethod === "cod"}
-                          onChange={handleInputChange}
-                          className="text-red-600"
-                        />
-                        <div>
-                          <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                            Cash on Delivery (COD)
-                          </span>
-                          <p className="text-sm" style={{ color: "#8C6141" }}>
-                            Pay when your order is delivered
-                          </p>
-                        </div>
-                      </label>
-
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="razorpay"
-                          checked={formData.paymentMethod === "razorpay"}
-                          onChange={handleInputChange}
-                          className="text-red-600"
-                        />
-                        <div>
-                          <span style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                            Pay Online (Razorpay)
-                          </span>
-                          <p className="text-sm" style={{ color: "#8C6141" }}>
-                            Credit/Debit Card, UPI, Net Banking, Wallets
-                          </p>
-                        </div>
-                      </label>
+                  {/* 2. Shipping Address */}
+                  <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#5A0117] text-white flex items-center justify-center font-bold text-sm">2</div>
+                      <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
+                        Delivery Address
+                      </h2>
                     </div>
-                  </div>
 
-                  {/* Payment Buttons */}
-                  <div className="space-y-4">
-                    {formData.paymentMethod === "cod" ? (
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-4 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-                        style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        {loading ? "Placing Order..." : "Place Order (COD)"}
-                      </button>
-                    ) : (
-                      <div className="w-full">
-                        {razorpayLoaded ? (
-                          <RazorpayButton
-                            cartItems={getCartItems()}
-                            orderData={{
-                              ...getOrderData(),
-                              totalAmount: getFinalTotal(),
-                              originalAmount: appliedCoupon ? calculateTotal() : null,
-                              discountAmount: appliedCoupon ? appliedCoupon.discount.discountAmount : 0,
-                              couponCode: appliedCoupon ? appliedCoupon.coupon.code : null,
-                              couponId: appliedCoupon ? appliedCoupon.coupon._id : null
-                            }}
-                            appliedCoupon={appliedCoupon}
-                            finalAmount={getFinalTotal()}
-                            onSuccess={handleRazorpaySuccess}
-                            onError={handleRazorpayError}
-                          />
-                        ) : scriptLoadTimeout ? (
-                          <div className="w-full space-y-3">
-                            <button
-                              onClick={() => {
-                                // Manual retry
-                                if (typeof window !== 'undefined' && window.Razorpay) {
-                                  setRazorpayLoaded(true)
-                                  setScriptLoadTimeout(false)
-                                } else {
-                                  showError('Payment gateway failed to load. Please refresh the page or use COD.')
-                                }
-                              }}
-                              className="w-full py-4 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-                              style={{ backgroundColor: "#F59E0B", fontFamily: "Montserrat, sans-serif" }}
-                            >
-                              🔄 Retry Payment Gateway
-                            </button>
-                            <p className="text-center text-sm" style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}>
-                              Having trouble? Use Cash on Delivery instead.
+                    <div className="p-4">
+                      <AddressSelector
+                        selectedAddress={selectedAddress}
+                        onAddressSelect={handleAddressSelect}
+                        onManualAddress={handleManualFormToggle}
+                        showManualForm={showManualForm}
+                        manualFormData={formData}
+                        onManualFormChange={handleInputChange}
+                      />
+                    </div>
+                  </section>
+
+                  {/* 3. Payment Method */}
+                  <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#5A0117] text-white flex items-center justify-center font-bold text-sm">3</div>
+                      <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
+                        Payment Method
+                      </h2>
+                    </div>
+
+                    <div className="p-4 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* COD Card */}
+                        <label className={`
+                          relative flex items-start gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-200
+                          ${formData.paymentMethod === 'cod'
+                            ? 'border-[#5A0117] bg-red-50/30 ring-1 ring-[#5A0117]/20'
+                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'}
+                        `}>
+                          <div className="flex items-center h-5 mt-1">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="cod"
+                              checked={formData.paymentMethod === 'cod'}
+                              onChange={handleInputChange}
+                              className="w-5 h-5 text-[#5A0117] border-gray-300 focus:ring-[#5A0117]"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Banknote className={`w-5 h-5 ${formData.paymentMethod === 'cod' ? 'text-[#5A0117]' : 'text-gray-400'}`} />
+                              <span className="font-bold text-gray-900">Cash on Delivery</span>
+                            </div>
+                            <p className="text-sm text-gray-500 leading-relaxed">
+                              Pay in cash when your order arrives at your doorstep.
                             </p>
                           </div>
-                        ) : (
-                          <button
-                            disabled={true}
-                            className="w-full py-4 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed"
-                            style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                          >
-                            Loading Payment Gateway...
-                          </button>
-                        )}
+                        </label>
+
+                        {/* Online Payment Card */}
+                        <label className={`
+                          relative flex items-start gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-200
+                          ${formData.paymentMethod === 'razorpay'
+                            ? 'border-[#5A0117] bg-red-50/30 ring-1 ring-[#5A0117]/20'
+                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'}
+                        `}>
+                          <div className="flex items-center h-5 mt-1">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="razorpay"
+                              checked={formData.paymentMethod === 'razorpay'}
+                              onChange={handleInputChange}
+                              className="w-5 h-5 text-[#5A0117] border-gray-300 focus:ring-[#5A0117]"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <CreditCard className={`w-5 h-5 ${formData.paymentMethod === 'razorpay' ? 'text-[#5A0117]' : 'text-gray-400'}`} />
+                              <span className="font-bold text-gray-900">Pay Online</span>
+                            </div>
+                            <p className="text-sm text-gray-500 leading-relaxed">
+                              Cards, UPI, Netbanking. Secure & Fast.
+                            </p>
+                            <div className="mt-2 flex gap-2">
+                              {/* Small badges for visual trust */}
+                              <div className="h-6 w-10 bg-gray-100 rounded border border-gray-200" />
+                              <div className="h-6 w-10 bg-gray-100 rounded border border-gray-200" />
+                              <div className="h-6 w-10 bg-gray-100 rounded border border-gray-200" />
+                            </div>
+                          </div>
+                        </label>
                       </div>
-                    )}
-                  </div>
+                    </div>
+
+                    {/* Submit Section */}
+                    <div className="p-4 bg-gray-50/50 border-t border-gray-100">
+                      {formData.paymentMethod === "cod" ? (
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full py-4 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:translate-y-[-2px] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+                        >
+                          {loading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              Place Order (COD)
+                              <span className="bg-white/20 px-2 py-0.5 rounded text-sm">₹{getFinalTotal().toLocaleString()}</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <div className="w-full">
+                          {razorpayLoaded ? (
+                            <RazorpayButton
+                              cartItems={getCartItems()}
+                              orderData={{
+                                ...getOrderData(),
+                                totalAmount: getFinalTotal(),
+                                originalAmount: appliedCoupon ? calculateTotal() : null,
+                                discountAmount: appliedCoupon ? appliedCoupon.discount.discountAmount : 0,
+                                couponCode: appliedCoupon ? appliedCoupon.coupon.code : null,
+                                couponId: appliedCoupon ? appliedCoupon.coupon._id : null
+                              }}
+                              appliedCoupon={appliedCoupon}
+                              finalAmount={getFinalTotal()}
+                              onSuccess={handleRazorpaySuccess}
+                              onError={handleRazorpayError}
+                            />
+                          ) : scriptLoadTimeout ? (
+                            <div className="space-y-3">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (typeof window !== 'undefined' && window.Razorpay) {
+                                    setRazorpayLoaded(true)
+                                    setScriptLoadTimeout(false)
+                                  } else {
+                                    toast.error('Payment gateway failed to load. Please refresh the page or use COD.')
+                                  }
+                                }}
+                                className="w-full py-4 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors"
+                              >
+                                🔄 Retry Connection
+                              </button>
+                              <p className="text-center text-sm text-amber-800">
+                                Network issue detected. Please retry or switch to COD.
+                              </p>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled
+                              className="w-full py-4 bg-gray-800 text-white font-bold rounded-xl opacity-80 cursor-wait"
+                            >
+                              Loading Secure Gateway...
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500 font-medium">
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                        Guaranteed Safe & Secure Checkout
+                      </div>
+                    </div>
+                  </section>
                 </form>
               </div>
 
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                {/* Coupon Section */}
-                <CouponSection
-                  cartItems={getCartItems()}
-                  orderAmount={calculateTotal()}
-                  onCouponApply={handleCouponApply}
-                  onCouponRemove={handleCouponRemove}
-                  appliedCoupon={appliedCoupon}
-                />
-                
-                <CartSummary 
-                  showCheckoutButton={false} 
-                  appliedCoupon={appliedCoupon}
-                  finalTotal={getFinalTotal()}
-                />
+              {/* Right Column - Summary & Coupons */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="sticky top-24 space-y-6">
+                  <CouponSection
+                    cartItems={getCartItems()}
+                    orderAmount={calculateTotal()}
+                    onCouponApply={handleCouponApply}
+                    onCouponRemove={handleCouponRemove}
+                    appliedCoupon={appliedCoupon}
+                  />
+
+                  <CartSummary
+                    showCheckoutButton={false}
+                    appliedCoupon={appliedCoupon}
+                    finalTotal={getFinalTotal()}
+                  />
+
+                  {/* Trust Badges - Desktop only */}
+                  <div className="hidden lg:grid grid-cols-3 gap-2">
+                    <div className="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center gap-1">
+                      <ShieldCheck className="w-6 h-6 text-[#5A0117]" />
+                      <span className="text-[10px] font-bold text-gray-600">Secure Payment</span>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center gap-1">
+                      <Truck className="w-6 h-6 text-[#5A0117]" />
+                      <span className="text-[10px] font-bold text-gray-600">Fast Delivery</span>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center gap-1">
+                      <Lock className="w-6 h-6 text-[#5A0117]" />
+                      <span className="text-[10px] font-bold text-gray-600">Data Encrypted</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
         </main>

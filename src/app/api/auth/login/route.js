@@ -9,55 +9,73 @@ import { getClientIP, getUserAgent } from "@/lib/clientInfo"
 
 export async function POST(request) {
   try {
-    const connection = await connectDB()
-    console.log("🔗 Connected to database:", connection.connection.db.databaseName)
-    const { email, password } = await request.json()
+    await connectDB()
 
-    // Validation
+    let { email, password } = await request.json()
+    email = email?.trim()?.toLowerCase() || ""
+
     if (!email || !password) {
-      return NextResponse.json({ success: false, error: "Email and password are required" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "Email and password are required" },
+        { status: 400 }
+      )
     }
 
-    // Find user
-    console.log("🔍 Looking for user with email:", email, "in database:", connection.connection.db.databaseName)
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email }).select("+password")
     if (!user) {
-      console.log("❌ User not found with email:", email)
-      return NextResponse.json({ success: false, error: "Invalid email or password" }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      )
     }
-    console.log("✅ User found:", user._id)
 
-    // Check password
+    if (!user.password) {
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 400 }
+      )
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      return NextResponse.json({ success: false, error: "Invalid email or password" }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      )
     }
 
-    // Check if user is blocked
     const blockValidation = await validateUserNotBlocked(user._id)
     if (!blockValidation.success) {
-      return NextResponse.json({ success: false, error: blockValidation.error }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: blockValidation.error },
+        { status: 403 }
+      )
     }
 
-    // Generate token
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "7d" })
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables")
+      throw new Error("Server configuration error")
+    }
 
-    // Remove password from response
-    const userResponse = {
-      _id: user._id,
-      name: user.name,
+    const token = jwt.sign({
+      userId: user._id,
       email: user.email,
-      role: user.role,
-    }
+      role: user.role
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    )
 
-    // Send login notification email
+    // 7. Handle Notifications (Non-blocking)
+    // We perform this asynchronously and dont await it to block the response, 
+    // BUT in Vercel/Serverless functions, we MUST await it or the function might freeze before completion.
+    // So we await it but catch errors so login doesn't fail.
     const clientIP = getClientIP(request)
     const userAgent = getUserAgent(request)
     const loginTime = new Date()
-    
+
     try {
       if (user.role === 'admin') {
-        console.log('📧 Sending admin login notification to:', user.email)
         await sendAdminLoginNotificationEmail(
           user.email,
           user.name,
@@ -65,9 +83,7 @@ export async function POST(request) {
           clientIP,
           userAgent
         )
-        console.log('✅ Admin login notification sent successfully')
       } else {
-        console.log('📧 Sending login notification to:', user.email)
         await sendLoginNotificationEmail(
           user.email,
           user.name,
@@ -76,20 +92,32 @@ export async function POST(request) {
           clientIP,
           userAgent
         )
-        console.log('✅ Login notification sent successfully')
       }
-    } catch (emailError) {
-      console.error('❌ Failed to send login notification:', emailError)
-      // Don't block login if email fails
+    } catch (notificationError) {
+      console.error("Login notification failed:", notificationError.message)
+    }
+
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      emailVerified: user.emailVerified
     }
 
     return NextResponse.json({
       success: true,
+      message: "Login successful",
       user: userResponse,
       token,
     })
+
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    console.error("Login route error:", error)
+    return NextResponse.json(
+      { success: false, error: "Internal server error. Please try again later." },
+      { status: 500 }
+    )
   }
 }

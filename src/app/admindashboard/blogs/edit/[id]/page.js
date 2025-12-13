@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import AdminLayout from "../../../../../components/shared/AdminLayout"
 import ProtectedRoute from "../../../../../components/ProtectedRoute"
@@ -7,10 +7,10 @@ import BlogForm from "../../../../../components/admin/BlogForm"
 import { useNotification } from "../../../../../contexts/NotificationContext"
 
 export default function EditBlog({ params }) {
+  const { id } = use(params)
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const { id } = params
   const { showSuccess, showError } = useNotification()
 
   useEffect(() => {

@@ -4,6 +4,17 @@ import { useRouter } from "next/navigation"
 import AdminLayout from "../../../components/shared/AdminLayout"
 import CouponForm from "../../../components/admin/CouponForm"
 import { useNotification } from "../../../contexts/NotificationContext"
+import {
+  Ticket,
+  Plus,
+  Calendar,
+  Percent,
+  IndianRupee,
+  Trash2,
+  Edit2,
+  Power,
+  Copy
+} from "lucide-react"
 
 export default function AdminCoupons() {
   const [coupons, setCoupons] = useState([])
@@ -19,13 +30,10 @@ export default function AdminCoupons() {
 
   const fetchCoupons = async () => {
     try {
-      // Use admin bypass route
       const res = await fetch("/api/coupons/admin")
       const data = await res.json()
       if (data.success) {
         setCoupons(data.coupons)
-      } else {
-        console.error('Failed to fetch coupons:', data.error)
       }
     } catch (error) {
       console.error("Error fetching coupons:", error)
@@ -36,15 +44,12 @@ export default function AdminCoupons() {
 
   const handleSubmit = async (formData) => {
     try {
-      // Use admin bypass route for creation, original route for editing
       const url = editingCoupon ? `/api/coupons/${editingCoupon._id}` : "/api/coupons/admin"
       const method = editingCoupon ? "PUT" : "POST"
 
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
 
@@ -53,11 +58,7 @@ export default function AdminCoupons() {
         await fetchCoupons()
         setShowForm(false)
         setEditingCoupon(null)
-        
-        showNotification(
-          editingCoupon ? "Coupon updated successfully!" : "Coupon created successfully!", 
-          "success"
-        )
+        showNotification(editingCoupon ? "Coupon updated!" : "Coupon created!", "success")
       } else {
         showNotification("Error: " + data.error, "error")
       }
@@ -68,16 +69,13 @@ export default function AdminCoupons() {
   }
 
   const handleDelete = async (couponId) => {
-    if (!confirm("Are you sure you want to delete this coupon?")) return
-
+    if (!confirm("Delete this coupon?")) return
     try {
-      const res = await fetch(`/api/coupons/${couponId}`, { 
-        method: "DELETE",
-      })
+      const res = await fetch(`/api/coupons/${couponId}`, { method: "DELETE" })
       const data = await res.json()
       if (data.success) {
         await fetchCoupons()
-        showNotification("Coupon deleted successfully!", "success")
+        showNotification("Coupon deleted!", "success")
       } else {
         showNotification("Error: " + data.error, "error")
       }
@@ -89,214 +87,123 @@ export default function AdminCoupons() {
 
   const handleToggleStatus = async (coupon) => {
     try {
-      const res = await fetch(`/api/coupons/${coupon._id}`, { 
+      const res = await fetch(`/api/coupons/${coupon._id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isActive: !coupon.isActive
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !coupon.isActive }),
       })
-      
       const data = await res.json()
       if (data.success) {
         await fetchCoupons()
-        showNotification(
-          `Coupon ${coupon.isActive ? 'deactivated' : 'activated'} successfully!`, 
-          "success"
-        )
+        showNotification(`Coupon ${coupon.isActive ? 'deactivated' : 'activated'}!`, "success")
       } else {
         showNotification("Error: " + data.error, "error")
       }
     } catch (error) {
-      console.error("Error toggling coupon status:", error)
-      showNotification("Error updating coupon status", "error")
+      showNotification("Error updating status", "error")
     }
   }
 
-  const handleEdit = (coupon) => {
-    setEditingCoupon(coupon)
-    setShowForm(true)
-  }
-
-  const handleCancel = () => {
-    setShowForm(false)
-    setEditingCoupon(null)
-  }
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  const isExpired = (coupon) => {
-    return new Date() > new Date(coupon.validTo)
-  }
-
-  const isNotYetActive = (coupon) => {
-    return new Date() < new Date(coupon.validFrom)
-  }
+  const handleEdit = (coupon) => { setEditingCoupon(coupon); setShowForm(true); }
+  const handleCancel = () => { setShowForm(false); setEditingCoupon(null); }
+  const isExpired = (coupon) => new Date() > new Date(coupon.validTo)
+  const isNotYetActive = (coupon) => new Date() < new Date(coupon.validFrom)
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
               Coupons
             </h1>
-            <p className="mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Manage discount coupons and promotional offers
+            <p className="mt-1 text-sm text-gray-500" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Create and manage discount codes
             </p>
           </div>
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full sm:w-auto px-6 py-2 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#5A0117] hover:bg-[#4a0113] transition-colors"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
             >
+              <Plus size={18} className="mr-2" />
               Add Coupon
             </button>
           )}
         </div>
 
-        {/* Form */}
-        {showForm && <CouponForm coupon={editingCoupon} onSubmit={handleSubmit} onCancel={handleCancel} />}
-
-        {/* Coupons List */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              All Coupons ({coupons.length})
-            </h2>
+        {/* Content */}
+        {showForm ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <CouponForm coupon={editingCoupon} onSubmit={handleSubmit} onCancel={handleCancel} />
           </div>
-          <div className="p-4 sm:p-6">
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-gray-200 rounded h-24 animate-pulse"></div>
-                ))}
-              </div>
+              [...Array(3)].map((_, i) => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse"></div>)
             ) : coupons.length > 0 ? (
-              <div className="space-y-4">
-                {coupons.map((coupon) => (
-                  <div 
-                    key={coupon._id} 
-                    className={`p-4 border rounded-lg ${
-                      !coupon.isActive ? 'bg-gray-50 border-gray-300' : 
-                      isExpired(coupon) ? 'bg-red-50 border-red-200' :
-                      isNotYetActive(coupon) ? 'bg-yellow-50 border-yellow-200' :
-                      'bg-green-50 border-green-200'
-                    }`}
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3
-                            className="text-lg font-bold"
-                            style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}
-                          >
-                            {coupon.code}
-                          </h3>
-                          
-                          {/* Status Badges */}
-                          <div className="flex gap-2">
-                            {!coupon.isActive && (
-                              <span className="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded">
-                                Inactive
-                              </span>
-                            )}
-                            {coupon.isActive && isExpired(coupon) && (
-                              <span className="px-2 py-1 text-xs font-semibold text-red-600 bg-red-200 rounded">
-                                Expired
-                              </span>
-                            )}
-                            {coupon.isActive && isNotYetActive(coupon) && (
-                              <span className="px-2 py-1 text-xs font-semibold text-yellow-600 bg-yellow-200 rounded">
-                                Not Yet Active
-                              </span>
-                            )}
-                            {coupon.isActive && !isExpired(coupon) && !isNotYetActive(coupon) && (
-                              <span className="px-2 py-1 text-xs font-semibold text-green-600 bg-green-200 rounded">
-                                Active
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                          {coupon.description}
-                        </p>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="font-semibold" style={{ color: "#5A0117" }}>Discount:</span>
-                            <br />
-                            {coupon.discountType === 'percentage' 
-                              ? `${coupon.discountValue}%`
-                              : `₹${coupon.discountValue}`
-                            }
-                          </div>
-                          <div>
-                            <span className="font-semibold" style={{ color: "#5A0117" }}>Min Order Amount (₹):</span>
-                            <br />
-                            ₹{coupon.minimumOrderAmount || 0}
-                          </div>
-                          <div>
-                            <span className="font-semibold" style={{ color: "#5A0117" }}>Used:</span>
-                            <br />
-                            {coupon.usageCount || 0}/{coupon.usageLimit || '∞'}
-                          </div>
-                        </div>
+              coupons.map((coupon) => {
+                const active = coupon.isActive && !isExpired(coupon) && !isNotYetActive(coupon)
+                const statusColor = active ? 'border-green-200 bg-green-50' : !coupon.isActive ? 'border-gray-200 bg-gray-50' : 'border-red-200 bg-red-50'
+                const textColor = active ? 'text-green-700' : 'text-gray-500'
+
+                return (
+                  <div key={coupon._id} className={`rounded-xl border-2 p-5 relative overflow-hidden group transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${statusColor}`}>
+                    {/* Ticket Dotted Line Effect or visuals */}
+                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-white/30 skew-x-12 translate-x-4"></div>
+
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="bg-white px-3 py-1 rounded font-mono font-bold text-lg border border-gray-200 shadow-sm flex items-center gap-2">
+                        {coupon.code}
+                        <button className="text-gray-400 hover:text-gray-600" onClick={() => { navigator.clipboard.writeText(coupon.code); showNotification("Copied!", "success") }}>
+                          <Copy size={14} />
+                        </button>
                       </div>
-                      
+                      <div className={`text-xs font-bold px-2 py-1 rounded uppercase ${active ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-700'}`}>
+                        {coupon.isActive ? (isExpired(coupon) ? 'Expired' : isNotYetActive(coupon) ? 'Scheduled' : 'Active') : 'Inactive'}
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10">{coupon.description}</p>
+
+                    <div className="space-y-2 text-sm text-gray-600 mb-6">
+                      <div className="flex items-center gap-2">
+                        {coupon.discountType === 'percentage' ? <Percent size={16} className="text-[#5A0117]" /> : <IndianRupee size={16} className="text-[#5A0117]" />}
+                        <span className="font-semibold text-gray-900">{coupon.discountValue}{coupon.discountType === 'percentage' ? '%' : ' OFF'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-[#8C6141]" />
+                        <span>{new Date(coupon.validFrom).toLocaleDateString()} - {new Date(coupon.validTo).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200/50">
+                      <button onClick={() => handleToggleStatus(coupon)} className={`p-2 rounded-lg transition-colors ${coupon.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`} title={coupon.isActive ? "Deactivate" : "Activate"}>
+                        <Power size={18} />
+                      </button>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(coupon)}
-                          className="px-3 py-2 text-sm border-2 font-semibold rounded-md hover:opacity-80 transition-opacity"
-                          style={{
-                            borderColor: "#8C6141",
-                            color: "#8C6141",
-                            fontFamily: "Montserrat, sans-serif",
-                          }}
-                        >
-                          Edit
+                        <button onClick={() => handleEdit(coupon)} className="p-2 bg-white text-gray-600 border border-gray-200 rounded-lg hover:text-[#5A0117] hover:border-[#5A0117] transition-colors">
+                          <Edit2 size={18} />
                         </button>
-                        <button
-                          onClick={() => handleToggleStatus(coupon)}
-                          className={`px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
-                            coupon.isActive 
-                              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}
-                          style={{ fontFamily: "Montserrat, sans-serif" }}
-                        >
-                          {coupon.isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(coupon._id)}
-                          className="px-3 py-2 text-sm bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors"
-                          style={{ fontFamily: "Montserrat, sans-serif" }}
-                        >
-                          Delete
+                        <button onClick={() => handleDelete(coupon._id)} className="p-2 bg-white text-gray-600 border border-gray-200 rounded-lg hover:text-red-500 hover:border-red-500 transition-colors">
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                )
+              })
             ) : (
-              <p className="text-center py-8" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                No coupons found. Create your first coupon!
-              </p>
+              <div className="col-span-full py-12 text-center text-gray-400">
+                <Ticket size={48} className="mx-auto mb-4 text-gray-200" />
+                <p className="font-medium text-gray-900">No coupons found</p>
+                <p className="text-sm mt-1">Create discount codes to boost sales</p>
+              </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </AdminLayout>
   )

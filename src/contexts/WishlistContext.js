@@ -1,7 +1,7 @@
 "use client"
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { useToast } from "./ToastContext"
+import toast from "react-hot-toast"
 
 const WishlistContext = createContext()
 
@@ -15,27 +15,21 @@ export function useWishlist() {
 
 export function WishlistProvider({ children }) {
   const { data: session } = useSession()
-  const { showToast } = useToast()
   const [wishlist, setWishlist] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Fetch wishlist when user logs in
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchWishlist()
-    } else {
-      setWishlist([])
-    }
-  }, [session?.user?.id])
+  // Define userId for stability
+  const userId = session?.user?.id
 
+  // 1. Define fetchWishlist FIRST (before using it)
   const fetchWishlist = useCallback(async () => {
-    if (!session?.user?.id) return
+    if (!userId) return
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/wishlist?userId=${session.user.id}`)
+      const response = await fetch(`/api/wishlist?userId=${userId}`)
       const data = await response.json()
-      
+
       if (data.success) {
         setWishlist(data.wishlist || [])
       } else {
@@ -46,11 +40,21 @@ export function WishlistProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [session?.user?.id])
+  }, [userId])
+
+  // 2. Use useEffect AFTER definition
+  useEffect(() => {
+    if (userId) {
+      console.log('❤️ User ID changed, fetching wishlist:', userId)
+      fetchWishlist()
+    } else {
+      setWishlist([])
+    }
+  }, [userId, fetchWishlist])
 
   const toggleWishlist = async (product) => {
-    if (!session?.user?.id) {
-      showToast("Please login to add items to wishlist", "error")
+    if (!userId) {
+      toast.error("Please login to add items to wishlist")
       return
     }
 
@@ -61,7 +65,7 @@ export function WishlistProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: session.user.id,
+          userId: userId,
           productId: product._id,
         }),
       })
@@ -70,18 +74,18 @@ export function WishlistProvider({ children }) {
 
       if (data.success) {
         if (data.action === "added") {
-          setWishlist(prev => [...prev, { productId: product, userId: session.user.id }])
-          showToast("Added to wishlist", "success")
+          setWishlist(prev => [...prev, { productId: product, userId: userId }])
+          toast.success("Added to wishlist")
         } else {
           setWishlist(prev => prev.filter(item => item.productId && item.productId._id !== product._id))
-          showToast("Removed from wishlist", "success")
+          toast.success("Removed from wishlist")
         }
       } else {
-        showToast(data.error || "Failed to update wishlist", "error")
+        toast.error(data.error || "Failed to update wishlist")
       }
     } catch (error) {
       console.error("Error toggling wishlist:", error)
-      showToast("Error updating wishlist", "error")
+      toast.error("Error updating wishlist")
     }
   }
 
@@ -94,16 +98,16 @@ export function WishlistProvider({ children }) {
   }
 
   const clearWishlist = async () => {
-    if (!session?.user?.id) return
+    if (!userId) return
 
     try {
       // Since there's no bulk delete endpoint, we'll clear the local state
       // and let the next fetch update it properly
       setWishlist([])
-      showToast("Wishlist cleared", "success")
+      toast.success("Wishlist cleared")
     } catch (error) {
       console.error("Error clearing wishlist:", error)
-      showToast("Error clearing wishlist", "error")
+      toast.error("Error clearing wishlist")
     }
   }
 
@@ -115,7 +119,7 @@ export function WishlistProvider({ children }) {
     getWishlistCount,
     clearWishlist,
     fetchWishlist,
-    isLoggedIn: !!session?.user?.id
+    isLoggedIn: !!userId
   }
 
   return (

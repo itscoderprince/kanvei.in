@@ -13,8 +13,8 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Email and type are required" }, { status: 400 })
     }
 
-    // For login OTP, check if user exists
-    if (type === "login") {
+    // For login OTP or Forgot Password, check if user exists
+    if (type === "login" || type === "forgot-password") {
       const existingUser = await User.findOne({ email })
       if (!existingUser) {
         return NextResponse.json({ success: false, error: "No account found with this email" }, { status: 404 })
@@ -43,7 +43,26 @@ export async function POST(request) {
     })
 
     // Send OTP email
-    const subject = type === "login" ? "Your Kanvei Login OTP" : "Your Kanvei Registration OTP"
+    let subject, actionText
+
+    switch (type) {
+      case "login":
+        subject = "Your Kanvei Login OTP"
+        actionText = "Use this code to sign in to your account:"
+        break
+      case "register":
+        subject = "Your Kanvei Registration OTP"
+        actionText = "Use this code to complete your registration:"
+        break
+      case "forgot-password":
+        subject = "Reset Your Kanvei Password - OTP"
+        actionText = "Use this code to reset your password:"
+        break
+      default:
+        subject = "Your Kanvei Verification Code"
+        actionText = "Use this code to verify your action:"
+    }
+
     const html = `
       <div style="font-family: 'Montserrat', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #5A0117; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -52,7 +71,7 @@ export async function POST(request) {
         <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
           <h2 style="color: #5A0117; margin-bottom: 20px;">Your OTP Code</h2>
           <p style="color: #8C6141; margin-bottom: 30px;">
-            ${type === "login" ? "Use this code to sign in to your account:" : "Use this code to complete your registration:"}
+            ${actionText}
           </p>
           <div style="background-color: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
             <h1 style="color: #5A0117; font-size: 36px; margin: 0; letter-spacing: 8px; font-family: 'Montserrat', sans-serif;">${otpCode}</h1>
