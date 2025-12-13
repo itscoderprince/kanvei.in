@@ -27,7 +27,7 @@ export default function CartContent({ isDrawer = false, onClose }) {
                         Your cart is empty
                     </h3>
                     <p className="text-gray-500 max-w-[250px] mx-auto text-sm">
-                        Looks like you haven't added any items yet. Explore our collection to find something you love.
+                        Looks like you haven&apos;t added any items yet. Explore our collection to find something you love.
                     </p>
                 </div>
                 <Link

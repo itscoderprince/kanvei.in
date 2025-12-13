@@ -299,7 +299,7 @@ export default function CheckoutPage() {
               Your cart is empty
             </h1>
             <p className="text-gray-500 mb-8" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              Looks like you haven't added anything yet.
+              Looks like you haven&apos;t added anything yet.
             </p>
             <button
               onClick={() => router.push("/products")}

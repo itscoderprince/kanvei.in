@@ -20,7 +20,7 @@ export default function WishlistPage() {
             My Wishlist
           </h1>
           <p className="text-xl opacity-90 max-w-2xl mx-auto" style={{ fontFamily: "Montserrat, sans-serif", color: "#DBCCB7" }}>
-            Here are the items you've saved for later. Move them to cart when you're ready to buy!
+            Here are the items you&apos;ve saved for later. Move them to cart when you&apos;re ready to buy!
           </p>
         </section>
 

@@ -55,7 +55,7 @@ export default function GiftsPage() {
           Occasions
         </h3>
         <p className="text-gray-600 font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
-          Celebrate life's moments
+          Celebrate life&apos;s moments
         </p>
       </div>
     </Link>

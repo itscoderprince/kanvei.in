@@ -134,7 +134,7 @@ export default function SearchBar({ isMobile = false, onClose }) {
                     ) : (
                         !loading && (
                             <div className="p-6 text-center text-gray-500">
-                                <p>No products found for "{query}"</p>
+                                <p>No products found for &quot;{query}&quot;</p>
                             </div>
                         )
                     )}

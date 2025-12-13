@@ -237,7 +237,7 @@ export default function WishlistContent({ isDrawer = false, onClose }) {
                     Your wishlist is empty
                 </h3>
                 <p className="text-gray-500 max-w-[280px] mx-auto text-sm mb-8 leading-relaxed">
-                    Looks like you haven't found your favorites yet. Explore our collection to find something you love.
+                    Looks like you haven&apos;t found your favorites yet. Explore our collection to find something you love.
                 </p>
                 <Link
                     href="/products"

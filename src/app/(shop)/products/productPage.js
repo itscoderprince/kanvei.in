@@ -252,7 +252,7 @@ export default function ProductPage() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-500 text-sm max-w-xs mx-auto">
-                  We couldn't find any products matching your filters. Try adjusting your search or price range.
+                  We couldn&apos;t find any products matching your filters. Try adjusting your search or price range.
                 </p>
                 <button
                   onClick={() => setFilters({
