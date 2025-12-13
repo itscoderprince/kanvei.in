@@ -35,8 +35,8 @@ export async function POST(request) {
 
     let user
 
-    if (type === "login") {
-      // Find existing user for login
+    if (type === "login" || type === "forgot-password") {
+      // Find existing user for login or password reset
       user = await User.findOne({ email })
       if (!user) {
         return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
@@ -47,6 +47,16 @@ export async function POST(request) {
       if (!blockValidation.success) {
         return NextResponse.json({ success: false, error: blockValidation.error }, { status: 403 })
       }
+
+      // If it's just verification for password reset, we can return early
+      if (type === "forgot-password") {
+        return NextResponse.json({
+          success: true,
+          message: "OTP verified successfully",
+          email: user.email // confirm email for next step
+        })
+      }
+
     } else if (type === "register") {
       // Create new user for registration
       if (!userData || !userData.name || !userData.password) {
@@ -91,7 +101,7 @@ export async function POST(request) {
       const clientIP = getClientIP(request)
       const userAgent = getUserAgent(request)
       const loginTime = new Date()
-      
+
       try {
         if (user.role === 'admin') {
           console.log('📧 Sending admin OTP login notification to:', user.email)

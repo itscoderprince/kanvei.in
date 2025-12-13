@@ -2,11 +2,26 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import {
+  LayoutDashboard,
+  FolderTree,
+  Package,
+  ShoppingCart,
+  Ticket,
+  FileText,
+  Users,
+  Home,
+  ChevronLeft,
+  ChevronRight,
+  LogOut
+} from "lucide-react"
+import { useAuth } from "../../contexts/AuthContext"
 
 export default function AdminSidebar({ onLinkClick }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
+  const { logout } = useAuth()
 
   useEffect(() => {
     const handleResize = () => {
@@ -18,73 +33,98 @@ export default function AdminSidebar({ onLinkClick }) {
   }, [])
 
   const menuItems = [
-    { href: "/admindashboard", label: "Dashboard", icon: "📊" },
-    { href: "/admindashboard/categories", label: "Categories", icon: "📁" },
-    { href: "/admindashboard/products", label: "Products", icon: "📦" },
-    { href: "/admindashboard/orders", label: "Orders", icon: "🛒" },
-    { href: "/admindashboard/coupons", label: "Coupons", icon: "🎟️" },
-    { href: "/admindashboard/blogs", label: "Blogs", icon: "📝" },
-    { href: "/admindashboard/users", label: "Users", icon: "👥" },
+    { href: "/admindashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admindashboard/products", label: "Products", icon: Package },
+    { href: "/admindashboard/categories", label: "Categories", icon: FolderTree },
+    { href: "/admindashboard/orders", label: "Orders", icon: ShoppingCart },
+    { href: "/admindashboard/coupons", label: "Coupons", icon: Ticket },
+    { href: "/admindashboard/users", label: "Users", icon: Users },
+    { href: "/admindashboard/blogs", label: "Blogs", icon: FileText },
   ]
 
   return (
     <div
-      className={`${isCollapsed ? "w-20" : "w-64"} transition-all duration-300 h-screen sticky top-0 flex flex-col`}
+      className={`${isCollapsed ? "w-20" : "w-64"} transition-all duration-300 h-screen sticky overflow-hidden top-0 flex flex-col shadow-xl z-50`}
       style={{ backgroundColor: "#5A0117" }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-white border-opacity-20">
-        <div className="flex items-center justify-between">
-          {!isCollapsed && (
-            <h1 className="text-xl font-bold text-white" style={{ fontFamily: "Sugar, serif" }}>
-              Kanvei Admin
-            </h1>
-          )}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-white hover:opacity-80 transition-opacity"
-          >
-            {isCollapsed ? "→" : "←"}
-          </button>
-        </div>
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
+        {!isCollapsed && (
+          <h1 className="text-xl font-bold text-white tracking-wide" style={{ fontFamily: "Sugar, serif" }}>
+            Kanvei<span className="text-[#8C6141] ml-2! font-light">Admin</span>
+          </h1>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={() => {
-                  if (isMobile && typeof onLinkClick === "function") onLinkClick()
-                }}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  pathname === item.href ? "text-white opacity-100" : "text-white opacity-70 hover:opacity-100"
+      <nav className={`flex-1 py-6 px-3 space-y-1 overflow-y-auto overflow-x-hidden ${isCollapsed ? 'no-scrollbar' : 'custom-scrollbar'}`}>
+        {menuItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => {
+                if (isMobile && typeof onLinkClick === "function") onLinkClick()
+              }}
+              className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative ${isActive
+                ? "bg-white/10 text-white"
+                : "text-white/70 hover:text-white hover:bg-white/5"
                 }`}
-                style={{
-                  backgroundColor: pathname === item.href ? "#8C6141" : "transparent",
-                  fontFamily: "Montserrat, sans-serif",
-                }}
-              >
-                <span className="text-lg">{item.icon}</span>
-                {!isCollapsed && <span>{item.label}</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
+            >
+              <item.icon
+                size={22}
+                className={`flex-shrink-0 transition-colors ${isActive ? "text-[#D4A373]" : "group-hover:text-[#D4A373]"}`}
+              />
+
+              {!isCollapsed && (
+                <span className="font-medium text-sm tracking-wide" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  {item.label}
+                </span>
+              )}
+
+              {/* Tooltip for collapsed state */}
+              {isCollapsed && (
+                <div className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                  {item.label}
+                </div>
+              )}
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white border-opacity-20">
+      <div className="p-4 border-t border-white/10 space-y-2">
         <Link
           href="/"
-          className="flex items-center gap-3 px-3 py-2 text-white opacity-70 hover:opacity-100 transition-opacity"
-          style={{ fontFamily: "Montserrat, sans-serif" }}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-colors group"
         >
-          <span className="text-lg">🏠</span>
-          {!isCollapsed && <span>Back to Store</span>}
+          <Home size={20} className="group-hover:text-[#D4A373] transition-colors" />
+          {!isCollapsed && (
+            <span className="text-sm font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Back to Store
+            </span>
+          )}
         </Link>
+
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-300/80 hover:text-red-300 hover:bg-red-900/20 transition-colors group"
+        >
+          <LogOut size={20} />
+          {!isCollapsed && (
+            <span className="text-sm font-medium" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Logout
+            </span>
+          )}
+        </button>
       </div>
     </div>
   )

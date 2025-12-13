@@ -3,10 +3,10 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Header from '../../components/shared/Header'
-import Footer from '../../components/shared/Footer'
-import { useAuth } from '../../contexts/AuthContext'
-import { toast } from '../../hooks/use-toast'
+import Header from '@/components/shared/Header'
+import Footer from '@/components/shared/Footer'
+import { useAuth } from '@/contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 function ResetPasswordComponent() {
   const router = useRouter()
@@ -53,27 +53,15 @@ function ResetPasswordComponent() {
       const data = await response.json()
 
       if (data.success) {
-        toast({
-          variant: 'success',
-          title: 'Password Reset Successful',
-          description: 'You can now log in with your new password.',
-        })
+        toast.success('Password Reset Successful. You can now log in with your new password.')
         router.push('/login')
       } else {
         setError(data.error || 'Failed to reset password.')
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: data.error || 'Failed to reset password.',
-        })
+        toast.error(data.error || 'Failed to reset password.')
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
-      toast({
-        variant: 'destructive',
-        title: 'Network Error',
-        description: 'Could not connect to the server.',
-      })
+      toast.error('Could not connect to the server.')
     } finally {
       setLoading(false)
     }

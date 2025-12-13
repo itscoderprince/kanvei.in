@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Header from "../../components/shared/Header"
 import Footer from "../../components/shared/Footer"
-import { useToast } from "../../contexts/ToastContext"
+import toast from "react-hot-toast"
 import { FiMail, FiPhone, FiMessageSquare, FiClock, FiMapPin, FiHeadphones, FiSend, FiCheckCircle } from "react-icons/fi"
 
 export default function SupportPage() {
@@ -14,7 +14,7 @@ export default function SupportPage() {
     category: "general"
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { showSuccess, showError } = useToast()
+
 
   const handleChange = (e) => {
     setFormData({
@@ -37,9 +37,9 @@ export default function SupportPage() {
       })
 
       const data = await response.json()
-      
+
       if (response.ok && data.success) {
-        showSuccess(data.message || "Your message has been sent successfully! We'll get back to you soon.", 5000)
+        toast.success(data.message || "Your message has been sent successfully! We'll get back to you soon.")
         setFormData({
           name: "",
           email: "",
@@ -49,11 +49,11 @@ export default function SupportPage() {
         })
       } else {
         const errorMessage = data.error || "Failed to send message. Please try again or contact us directly."
-        showError(errorMessage, 4000)
+        toast.error(errorMessage)
       }
     } catch (error) {
       console.error('Support form error:', error)
-      showError("Network error. Please check your connection and try again.", 4000)
+      toast.error("Network error. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }

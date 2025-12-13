@@ -24,7 +24,7 @@ async function getAuthenticatedUser(request) {
         method: 'nextauth'
       }
     }
-    
+
     // Try custom auth token
     const authUser = await getAuthUser(request)
     if (authUser?.userId) {
@@ -44,7 +44,7 @@ async function getAuthenticatedUser(request) {
         }
       }
     }
-    
+
     return {
       success: false,
       error: 'Unauthorized'
@@ -67,12 +67,12 @@ export async function GET(request) {
     }
 
     await connectDB()
-    
+
     const cart = await Cart.findByUserId(auth.userId)
-    
+
     if (!cart) {
-      return NextResponse.json({ 
-        cart: { items: [], totalItems: 0, totalAmount: 0 } 
+      return NextResponse.json({
+        cart: { items: [], totalItems: 0, totalAmount: 0 }
       })
     }
 
@@ -91,30 +91,30 @@ export async function GET(request) {
         const productImageDoc = await ProductImage.findOne({ productId: item.product._id })
         const productImages = productImageDoc?.img || []
         const snapshotImage = item.productSnapshot?.image || ''
-        
+
         // Priority: product images -> snapshot image -> no image (will show "No Image" placeholder)
         const imageUrl = productImages[0] || snapshotImage
-        
+
         console.log('🖼️ MAIN PRODUCT DEBUG:', {
           productId: item.product._id,
           productName: item.product.name,
-          
+
           // Product images debugging
           productImageDoc: !!productImageDoc,
           productImagesArray: productImages,
           productImagesLength: productImages.length,
           firstImage: productImages[0],
           firstImageType: typeof productImages[0],
-          
+
           // Snapshot debugging
           snapshotImage: snapshotImage,
-          
+
           // Final result
           finalImageUrl: imageUrl,
           hasImage: !!imageUrl,
           imageLength: imageUrl ? imageUrl.length : 'NULL'
         })
-        
+
         formattedItem = {
           ...formattedItem,
           name: item.product.name,
@@ -134,7 +134,7 @@ export async function GET(request) {
         // Product option - fetch images from OptionImage collection
         const optionImageDoc = await OptionImage.findOne({ optionId: item.productOption._id })
         const optionImages = optionImageDoc?.img || []
-        
+
         // Fallback to main product images if option has no images
         let imageUrl = optionImages[0]
         if (!imageUrl && item.productOption.productId) {
@@ -142,10 +142,10 @@ export async function GET(request) {
           const productImages = productImageDoc?.img || []
           imageUrl = productImages[0] || item.productSnapshot?.image || ''
         }
-        
+
         const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
         const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
-        
+
         console.log('🔧 PRODUCT OPTION DEBUG:', {
           optionId: item.productOption._id,
           productId: item.productOption.productId?._id,
@@ -156,7 +156,7 @@ export async function GET(request) {
           finalImageUrl: imageUrl,
           hasImage: !!imageUrl
         })
-        
+
         formattedItem = {
           ...formattedItem,
           name: optionDetails ? `${mainProductName} - ${optionDetails}` : mainProductName,
@@ -227,7 +227,7 @@ export async function POST(request) {
       itemType = 'productOption'
       price = productOption.price
       stock = productOption.stock
-      
+
       productSnapshot = {
         name: productOption.productId.name,
         image: productOption.productId.images?.[0] || '',
@@ -246,7 +246,7 @@ export async function POST(request) {
       itemType = 'product'
       price = product.price
       stock = product.stock
-      
+
       productSnapshot = {
         name: product.name,
         image: product.images?.[0] || '',
@@ -274,7 +274,7 @@ export async function POST(request) {
       const newQuantity = existingCartItem.quantity + quantity
       if (stock < newQuantity) {
         return NextResponse.json(
-          { 
+          {
             error: `Cannot add ${quantity} more. Only ${stock - existingCartItem.quantity} items available.`,
             currentInCart: existingCartItem.quantity,
             maxAvailable: stock
@@ -287,13 +287,13 @@ export async function POST(request) {
       existingCartItem.quantity = newQuantity
       existingCartItem.addedAt = new Date()
       await existingCartItem.save()
-      
+
       // Get or create cart and add reference
       const cart = await Cart.getOrCreateCart(auth.userId)
       await cart.addCartItem(existingCartItem._id)
-      
+
       const populatedCart = await Cart.findByUserId(auth.userId)
-      
+
       // Format the cart before returning
       const formattedItems = populatedCart.items.map(item => {
         let formattedItem = {
@@ -323,7 +323,7 @@ export async function POST(request) {
         } else if (item.itemType === 'productOption' && item.productOption) {
           const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
           const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
-          
+
           formattedItem = {
             ...formattedItem,
             name: optionDetails ? `${mainProductName} - ${optionDetails}` : mainProductName,
@@ -369,13 +369,13 @@ export async function POST(request) {
       })
 
       await newCartItem.save()
-      
+
       // Get or create cart and add reference
       const cart = await Cart.getOrCreateCart(auth.userId)
       await cart.addCartItem(newCartItem._id)
-      
+
       const populatedCart = await Cart.findByUserId(auth.userId)
-      
+
       // Format the cart before returning
       const formattedItems = populatedCart.items.map(item => {
         let formattedItem = {
@@ -399,7 +399,7 @@ export async function POST(request) {
         } else if (item.itemType === 'productOption' && item.productOption) {
           const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
           const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
-          
+
           formattedItem = {
             ...formattedItem,
             name: optionDetails ? `${mainProductName} - ${optionDetails}` : mainProductName,
@@ -442,7 +442,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     console.log('🔄 PUT /api/cart - Starting cart update')
-    
+
     const auth = await getAuthenticatedUser(request)
     if (!auth.success) {
       console.log('❌ Authentication failed:', auth.error)
@@ -469,7 +469,7 @@ export async function PUT(request) {
     console.log('🔍 Looking for cart item:', cartItemId)
     const cartItem = await CartItem.findById(cartItemId)
     console.log('🎯 Found cart item:', cartItem ? 'YES' : 'NO')
-    
+
     if (!cartItem) {
       console.log('❌ Cart item not found in database')
       return NextResponse.json(
@@ -477,7 +477,7 @@ export async function PUT(request) {
         { status: 404 }
       )
     }
-    
+
     if (cartItem.userId.toString() !== auth.userId) {
       console.log('❌ Cart item belongs to different user:', {
         cartItemUserId: cartItem.userId.toString(),
@@ -488,7 +488,7 @@ export async function PUT(request) {
         { status: 404 }
       )
     }
-    
+
     console.log('✅ Cart item verified, current quantity:', cartItem.quantity)
 
     if (quantity === 0) {
@@ -514,7 +514,7 @@ export async function PUT(request) {
         item = await ProductOption.findById(cartItem.productOption)
         stock = item?.stock || 0
       }
-      
+
       console.log('📊 Stock check:', { available: stock, requested: quantity })
 
       if (!item) {
@@ -539,7 +539,7 @@ export async function PUT(request) {
       cartItem.addedAt = new Date()
       await cartItem.save()
       console.log('✅ Cart item saved')
-      
+
       // Update cart totals
       const cart = await Cart.findOne({ userId: auth.userId })
       if (cart) {
@@ -555,10 +555,86 @@ export async function PUT(request) {
     // Get updated cart
     const updatedCart = await Cart.findByUserId(auth.userId)
     console.log('📦 Updated cart:', updatedCart ? 'Found' : 'Not found')
-    
-    return NextResponse.json({ 
+
+    // Format cart items for frontend display (Same logic as GET)
+    const formattedItems = await Promise.all(updatedCart.items.map(async (item) => {
+      let formattedItem = {
+        _id: item._id,
+        quantity: item.quantity,
+        price: item.price,
+        addedAt: item.addedAt,
+        itemType: item.itemType
+      }
+
+      if (item.itemType === 'product' && item.product) {
+        // Main product - fetch images from ProductImage collection
+        const productImageDoc = await ProductImage.findOne({ productId: item.product._id })
+        const productImages = productImageDoc?.img || []
+        const snapshotImage = item.productSnapshot?.image || ''
+
+        // Priority: product images -> snapshot image -> no image
+        const imageUrl = productImages[0] || snapshotImage
+
+        formattedItem = {
+          ...formattedItem,
+          name: item.product.name,
+          image: imageUrl,
+          slug: item.product.slug,
+          stock: item.product.stock,
+          mrp: item.product.mrp,
+          isOption: false,
+          product: {
+            _id: item.product._id,
+            name: item.product.name,
+            slug: item.product.slug
+          }
+        }
+      } else if (item.itemType === 'productOption' && item.productOption) {
+        // Product option - fetch images from OptionImage collection
+        const optionImageDoc = await OptionImage.findOne({ optionId: item.productOption._id })
+        const optionImages = optionImageDoc?.img || []
+
+        // Fallback to main product images
+        let imageUrl = optionImages[0]
+        if (!imageUrl && item.productOption.productId) {
+          const productImageDoc = await ProductImage.findOne({ productId: item.productOption.productId._id })
+          const productImages = productImageDoc?.img || []
+          imageUrl = productImages[0] || item.productSnapshot?.image || ''
+        }
+
+        const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
+        const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
+
+        formattedItem = {
+          ...formattedItem,
+          name: optionDetails ? `${mainProductName} - ${optionDetails}` : mainProductName,
+          image: imageUrl,
+          slug: item.productOption.productId?.slug,
+          stock: item.productOption.stock,
+          isOption: true,
+          size: item.productOption.size,
+          color: item.productOption.color,
+          mrp: item.productOption.mrp,
+          productOptionId: item.productOption._id,
+          productOption: {
+            _id: item.productOption._id,
+            productId: item.productOption.productId?._id
+          }
+        }
+      }
+
+      return formattedItem
+    }))
+
+    const formattedCart = {
+      items: formattedItems,
+      totalItems: updatedCart.totalItems,
+      totalAmount: updatedCart.totalAmount
+    }
+
+    return NextResponse.json({
       message: 'Cart updated successfully',
-      cart: updatedCart
+      cart: formattedCart
     })
   } catch (error) {
     console.error('Error updating cart:', error)
@@ -615,8 +691,8 @@ export async function DELETE(request) {
 
     // Get updated cart
     const updatedCart = await Cart.findByUserId(auth.userId)
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       message: clearAll ? 'Cart cleared successfully' : 'Item removed from cart',
       cart: updatedCart
     })

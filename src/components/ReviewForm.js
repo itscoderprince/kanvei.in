@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useAuth } from "../contexts/AuthContext"
-import { useToast } from "../contexts/ToastContext"
+import toast from "react-hot-toast"
 import { MdVerified, MdBlock, MdShoppingCart } from "react-icons/md"
 import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai"
 
@@ -13,44 +13,28 @@ export default function ReviewForm({ productId, onReviewAdded }) {
   const [canReview, setCanReview] = useState(null)
   const [reviewEligibility, setReviewEligibility] = useState(null)
   const [checkingEligibility, setCheckingEligibility] = useState(true)
-  
-  const { user, isAuthenticated } = useAuth()
-  const { showSuccess, showError } = useToast()
 
-  // Check if user can review this product
+  const { user, isAuthenticated } = useAuth()
+
+
+  // Simplified eligibility check - just to get past order info if present, but not blocking
   useEffect(() => {
     const checkReviewEligibility = async () => {
       if (!isAuthenticated || !user || !productId) {
-        setCanReview(false)
-        setReviewEligibility({
-          canReview: false,
-          message: "Please login to review products"
-        })
-        setCheckingEligibility(false)
+        setReviewEligibility(null)
         return
       }
 
       try {
+        // We still fetch this to show "Verified Purchase" badge if applicable
         const res = await fetch(`/api/products/${productId}/can-review`)
         const data = await res.json()
-        
+
         if (data.success) {
-          setCanReview(data.canReview)
           setReviewEligibility(data)
-        } else {
-          setCanReview(false)
-          setReviewEligibility({
-            canReview: false,
-            message: data.message || "Unable to check review eligibility"
-          })
         }
       } catch (error) {
         console.error("Error checking review eligibility:", error)
-        setCanReview(false)
-        setReviewEligibility({
-          canReview: false,
-          message: "Error checking review eligibility"
-        })
       } finally {
         setCheckingEligibility(false)
       }
@@ -116,83 +100,26 @@ export default function ReviewForm({ productId, onReviewAdded }) {
     )
   }
 
-  // Show restriction message if user cannot review
-  if (!canReview) {
-    const getRestrictionIcon = () => {
-      if (!isAuthenticated) return <MdBlock className="w-8 h-8 text-red-500" />
-      if (reviewEligibility?.hasOrdered) return <MdShoppingCart className="w-8 h-8 text-yellow-500" />
-      return <AiOutlineCloseCircle className="w-8 h-8 text-orange-500" />
-    }
-
-    const getRestrictionColor = () => {
-      if (!isAuthenticated) return "bg-red-50 border-red-200"
-      if (reviewEligibility?.hasOrdered) return "bg-yellow-50 border-yellow-200"
-      return "bg-orange-50 border-orange-200"
-    }
-
+  // Show simple login message if not authenticated
+  if (!isAuthenticated) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-6 rounded-lg shadow-md text-center">
         <h3 className="text-xl font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
           Write a Review
         </h3>
-        
-        <div className={`p-6 rounded-lg border-2 text-center ${getRestrictionColor()}`}>
-          <div className="flex flex-col items-center">
-            {getRestrictionIcon()}
-            
-            <h4 className="text-lg font-semibold mt-4 mb-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              {!isAuthenticated ? "Login Required" : 
-               reviewEligibility?.hasOrdered ? "Order Not Delivered" : "Purchase Required"}
-            </h4>
-            
-            <p className="text-sm mb-4" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              {reviewEligibility?.message || "Unable to submit review"}
-            </p>
-
-            {/* Purchase guidance */}
-            {!reviewEligibility?.hasOrdered && isAuthenticated && (
-              <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200">
-                <h5 className="font-semibold mb-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                  📝 How to review this product:
-                </h5>
-                <ol className="text-sm text-left space-y-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                  <li>1. 🛒 Add this product to cart and place an order</li>
-                  <li>2. ⏳ Wait for your order to be delivered</li>
-                  <li>3. ✅ Once delivered, you can write a review</li>
-                </ol>
-              </div>
-            )}
-
-            {/* Order status info for pending orders */}
-            {reviewEligibility?.hasOrdered && isAuthenticated && (
-              <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200">
-                <div className="flex items-center justify-center">
-                  <MdShoppingCart className="w-5 h-5 mr-2" style={{ color: "#8C6141" }} />
-                  <span className="text-sm font-medium" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                    You have ordered this product!
-                  </span>
-                </div>
-                <p className="text-xs mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                  Review option will be available once your order is delivered.
-                </p>
-              </div>
-            )}
-
-            {/* Login button if not authenticated */}
-            {!isAuthenticated && (
-              <button 
-                className="mt-4 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                onClick={() => {
-                  // You can implement login modal or redirect here
-                  showError("Please login to review products")
-                }}
-              >
-                Login to Review
-              </button>
-            )}
-          </div>
-        </div>
+        <p className="mb-4 text-gray-600" style={{ fontFamily: "Montserrat, sans-serif" }}>
+          Please login to share your experience with this product.
+        </p>
+        <button
+          className="px-6 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+          onClick={() => {
+            toast.error("Please login to review products")
+            // Optionally redirect to login page
+          }}
+        >
+          Login to Review
+        </button>
       </div>
     )
   }
@@ -201,29 +128,25 @@ export default function ReviewForm({ productId, onReviewAdded }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       {/* Review eligibility confirmation */}
-      <div className={`mb-6 p-4 border-2 rounded-lg ${
-        reviewEligibility?.isAdmin 
-          ? 'bg-blue-50 border-blue-200' 
-          : 'bg-green-50 border-green-200'
-      }`}>
+      <div className={`mb-6 p-4 border-2 rounded-lg ${reviewEligibility?.isAdmin
+        ? 'bg-blue-50 border-blue-200'
+        : 'bg-green-50 border-green-200'
+        }`}>
         <div className="flex items-center">
-          <AiOutlineCheckCircle className={`w-6 h-6 mr-3 ${
-            reviewEligibility?.isAdmin ? 'text-blue-600' : 'text-green-600'
-          }`} />
+          <AiOutlineCheckCircle className={`w-6 h-6 mr-3 ${reviewEligibility?.isAdmin ? 'text-blue-600' : 'text-green-600'
+            }`} />
           <div>
-            <h4 className={`font-semibold ${
-              reviewEligibility?.isAdmin ? 'text-blue-800' : 'text-green-800'
-            }`} style={{ fontFamily: "Sugar, serif" }}>
-              {reviewEligibility?.isAdmin 
-                ? '👑 Admin Review Access' 
+            <h4 className={`font-semibold ${reviewEligibility?.isAdmin ? 'text-blue-800' : 'text-green-800'
+              }`} style={{ fontFamily: "Sugar, serif" }}>
+              {reviewEligibility?.isAdmin
+                ? '👑 Admin Review Access'
                 : '✅ Verified Purchase'
               }
             </h4>
-            <p className={`text-sm mt-1 ${
-              reviewEligibility?.isAdmin ? 'text-blue-700' : 'text-green-700'
-            }`} style={{ fontFamily: "Montserrat, sans-serif" }}>
-              {reviewEligibility?.message} 
-              {reviewEligibility?.orderCount && reviewEligibility.orderCount > 1 && 
+            <p className={`text-sm mt-1 ${reviewEligibility?.isAdmin ? 'text-blue-700' : 'text-green-700'
+              }`} style={{ fontFamily: "Montserrat, sans-serif" }}>
+              {reviewEligibility?.message}
+              {reviewEligibility?.orderCount && reviewEligibility.orderCount > 1 &&
                 ` (${reviewEligibility.orderCount} delivered orders)`
               }
             </p>

@@ -3,10 +3,14 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "../../contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { X, Home, ShoppingBag, ShoppingCart, Mail, User, LogOut, ChevronRight, LayoutDashboard } from "lucide-react"
+import SearchBar from "./Search"
 
 export default function NavbarDrawer({ isOpen, onClose }) {
   const { isAuthenticated, user, logout } = useAuth()
   const router = useRouter()
+  // ... existing logic ...
+
 
   const handleLogout = () => {
     logout()
@@ -36,55 +40,68 @@ export default function NavbarDrawer({ isOpen, onClose }) {
     <>
       {/* Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-300" onClick={onClose} />
       )}
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-        style={{ backgroundColor: "#5A0117" }}
+        className={`fixed top-0 left-0 h-full w-80 max-w-[90vw] z-50 transform transition-transform duration-300 ease-in-out bg-[#5A0117]/90 backdrop-blur-md ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full text-white">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white border-opacity-20">
             <Link
               href="/"
-              className="text-xl font-bold hover:opacity-80 transition-opacity"
+              className="text-2xl font-bold hover:opacity-80 transition-opacity flex items-center gap-2"
               style={{ fontFamily: "Sugar, serif" }}
               onClick={onClose}
             >
-              🏠 Home
+              Kanvei
             </Link>
-            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-10 rounded-full transition-colors">
+              <X className="w-6 h-6" />
             </button>
           </div>
+
+          {/* Search removed as per user request */}
 
           {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto">
             <nav className="p-6">
               <div className="space-y-6">
                 {/* Main Navigation */}
+                {/* Top Level Navigation */}
+                <div className="space-y-3">
+                  <Link
+                    href="/"
+                    className="flex items-center gap-3 py-2 hover:opacity-80 transition-opacity font-medium"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    onClick={onClose}
+                  >
+                    <Home className="w-5 h-5" />
+                    Home
+                  </Link>
+                  <Link
+                    href="/products"
+                    className="flex items-center gap-3 py-2 hover:opacity-80 transition-opacity font-medium"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    onClick={onClose}
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Shop
+                  </Link>
+                </div>
+
+                {/* Categories */}
                 <div>
                   <h3
-                    className="text-sm font-semibold mb-3 opacity-70"
+                    className="text-sm font-semibold mb-3 opacity-70 pt-2"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     CATEGORIES
                   </h3>
                   <div className="space-y-3">
-                    <Link
-                      href="/products"
-                      className="block py-2 hover:opacity-80 transition-opacity"
-                      style={{ fontFamily: "Montserrat, sans-serif" }}
-                      onClick={onClose}
-                    >
-                      Shop
-                    </Link>
                     <Link
                       href="/categories/jewellery"
                       className="block py-2 hover:opacity-80 transition-opacity"
@@ -266,6 +283,16 @@ export default function NavbarDrawer({ isOpen, onClose }) {
                 >
                   Login
                 </Link>
+                <button
+                  onClick={() => {
+                    onClose()
+                    router.push(`/login?redirect=${encodeURIComponent('/wishlist')}`)
+                  }}
+                  className="block w-full text-center py-3 px-4 rounded-lg border border-white border-opacity-30 hover:bg-white hover:bg-opacity-10 transition-colors"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  ❤️ Wishlist (Login Required)
+                </button>
                 <Link
                   href="/register"
                   className="block w-full text-center py-3 px-4 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors"

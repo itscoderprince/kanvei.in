@@ -5,86 +5,72 @@ import Header from "../../../components/shared/Header"
 import Footer from "../../../components/shared/Footer"
 import { useAuth } from "../../../contexts/AuthContext"
 import { useSession } from "next-auth/react"
-import { useToast } from "../../../contexts/ToastContext"
 import Link from "next/link"
-import { 
-  AiOutlineShopping, 
-  AiOutlineCalendar, 
+import {
+  AiOutlineShopping,
   AiOutlineArrowLeft,
-  AiOutlineUser,
   AiOutlinePhone,
-  AiOutlineMail
+  AiOutlineMail,
+  AiOutlineUser,
+  AiOutlineDownload,
+  AiOutlineEye
 } from "react-icons/ai"
-import { 
-  MdLocalShipping, 
-  MdDone, 
-  MdCancel, 
-  MdHourglassEmpty, 
+import {
+  MdLocalShipping,
+  MdDone,
+  MdCancel,
+  MdHourglassEmpty,
   MdDeliveryDining,
   MdSecurity,
   MdLocationOn,
-  MdPayment
+  MdPayment,
+  MdReceipt
 } from "react-icons/md"
 
+// Status Configuration with detailed styling
 const ORDER_STATUSES = [
-  { value: 'pending', label: 'Pending', icon: MdHourglassEmpty, color: '#F59E0B', description: 'Your order is being reviewed' },
-  { value: 'processing', label: 'Processing', icon: MdHourglassEmpty, color: '#F59E0B', description: 'Your order is being prepared' },
-  { value: 'shipping', label: 'Shipping', icon: MdLocalShipping, color: '#3B82F6', description: 'Your order has been shipped' },
-  { value: 'out_for_delivery', label: 'Out for Delivery', icon: MdDeliveryDining, color: '#8B5CF6', description: 'Your order is out for delivery' },
-  { value: 'delivered', label: 'Delivered', icon: MdDone, color: '#10B981', description: 'Your order has been delivered' },
-  { value: 'cancelled', label: 'Cancelled', icon: MdCancel, color: '#EF4444', description: 'Your order has been cancelled' }
+  { value: 'pending', label: 'Order Placed', icon: MdHourglassEmpty, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', step: 1 },
+  { value: 'processing', label: 'Processing', icon: MdReceipt, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', step: 2 },
+  { value: 'shipping', label: 'Shipped', icon: MdLocalShipping, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', step: 3 },
+  { value: 'out_for_delivery', label: 'Out for Delivery', icon: MdDeliveryDining, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200', step: 4 },
+  { value: 'delivered', label: 'Delivered', icon: MdDone, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', step: 5 },
+  { value: 'cancelled', label: 'Cancelled', icon: MdCancel, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', step: 0 }
 ]
 
 export default function OrderDetailPage({ params }) {
-  // Unwrap params Promise for Next.js 15+ compatibility
   const resolvedParams = use(params)
-  
   const router = useRouter()
   const { data: session, status } = useSession()
   const { user: authUser, isAuthenticated: customAuth, token: authToken } = useAuth()
-  const { showSuccess, showError } = useToast()
-  
+
   const [loading, setLoading] = useState(true)
   const [order, setOrder] = useState(null)
   const [notFound, setNotFound] = useState(false)
-  
+
   const currentUser = session?.user || authUser
   const isUserAuthenticated = (status === "authenticated") || customAuth
 
-  // Check authentication
+  // Auth Check
   useEffect(() => {
     if (status === "loading") return
-
-    if (!isUserAuthenticated) {
-      router.push('/login')
-      return
-    }
-
-    // Redirect admin to dashboard
-    if (currentUser?.role === "admin") {
-      router.push('/admindashboard')
-      return
-    }
-
+    if (!isUserAuthenticated) { router.push('/login'); return }
+    if (currentUser?.role === "admin") { router.push('/admindashboard'); return }
     setLoading(false)
   }, [status, isUserAuthenticated, currentUser, router])
 
-  // Fetch order details
+  // Data Fetch
   useEffect(() => {
     if (!isUserAuthenticated || !currentUser || !resolvedParams.id) return
 
     const fetchOrder = async () => {
       try {
         const headers = { 'Content-Type': 'application/json' }
-        if (authToken && authToken !== 'nextauth_session') {
-          headers.Authorization = `Bearer ${authToken}`
-        }
+        if (authToken && authToken !== 'nextauth_session') headers.Authorization = `Bearer ${authToken}`
 
         const response = await fetch(`/api/orders/${resolvedParams.id}`, { headers })
         const data = await response.json()
 
         if (data.success) {
-          // Verify the order belongs to the current user
           const userId = currentUser._id || currentUser.id
           if (data.order.userId === userId || data.order.customerEmail === currentUser.email) {
             setOrder(data.order)
@@ -101,385 +87,282 @@ export default function OrderDetailPage({ params }) {
         setLoading(false)
       }
     }
-
-    if (!loading) {
-      fetchOrder()
-    }
+    if (!loading) fetchOrder()
   }, [isUserAuthenticated, currentUser, authToken, loading, resolvedParams.id])
 
-  const getStatusInfo = (status) => {
-    const statusInfo = ORDER_STATUSES.find(s => 
-      s.value === status?.toLowerCase() || s.label.toLowerCase() === status?.toLowerCase()
-    )
-    return statusInfo || ORDER_STATUSES[0]
-  }
+  // Helpers
+  const getStatusInfo = (status) => ORDER_STATUSES.find(s => s.value === status?.toLowerCase()) || ORDER_STATUSES[0]
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+  const formatDate = (date) => new Date(date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0
-    }).format(price)
-  }
+  const formatPrice = (price) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(price)
 
-  const getOrderId = (order) => {
-    // If order has the new orderId field, use it with a # prefix
-    if (order?.orderId) {
-      return `#${order.orderId}`
-    }
-    // Fallback to formatting the MongoDB _id (for legacy orders)
-    const mongoId = order?._id || order
-    return `#${mongoId.toString().slice(-8).toUpperCase()}`
-  }
+  const getOrderId = (order) => order?.orderId ? `#${order.orderId}` : `#${(order?._id || '').toString().slice(-8).toUpperCase()}`
 
-  const calculateSubtotal = () => {
-    return order?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0
-  }
-
-  const getShipping = () => {
-    return 0 // Always free shipping
-  }
-
-  // No tax calculation - tax is already included in product prices
-
-  // Loading state
-  if (loading || status === "loading") {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#5A0117" }}></div>
-            <p style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>Loading order details...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
-
-  // Not found or not authenticated
-  if (notFound || !isUserAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto p-8">
-            <div className="mb-8">
-              <MdSecurity className="mx-auto h-24 w-24 opacity-50" style={{ color: "#8C6141" }} />
-            </div>
-            <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              {!isUserAuthenticated ? "Access Restricted" : "Order Not Found"}
-            </h1>
-            <p className="text-lg mb-6" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              {!isUserAuthenticated 
-                ? "Please login to view order details." 
-                : "This order doesn't exist or doesn't belong to you."
-              }
-            </p>
-            <Link
-              href={!isUserAuthenticated ? "/login" : "/orders"}
-              className="inline-block px-6 py-3 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-            >
-              {!isUserAuthenticated ? "Login Now" : "View All Orders"}
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
-
+  // Render Logic
+  if (loading || status === "loading") return <LoadingState />
+  if (notFound || !isUserAuthenticated) return <ErrorState isAuth={isUserAuthenticated} />
   if (!order) return null
 
   const statusInfo = getStatusInfo(order.status)
-  const StatusIcon = statusInfo.icon
+  const isCancelled = statusInfo.value === 'cancelled'
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50/50">
       <Header />
 
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <div className="mb-8">
-            <Link
-              href="/orders"
-              className="flex items-center gap-2 text-sm hover:underline"
-              style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
-            >
-              <AiOutlineArrowLeft className="w-4 h-4" />
-              Back to Orders
+      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        {/* Top Navigation & Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <Link href="/orders" className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#5A0117] transition-colors mb-1">
+              <AiOutlineArrowLeft /> Back to List
             </Link>
-          </div>
-
-          {/* Order Header */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-              <div>
-                <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                  Order {getOrderId(order)}
-                </h1>
-                <div className="flex items-center gap-4 text-sm" style={{ color: "#8C6141" }}>
-                  <div className="flex items-center gap-2">
-                    <AiOutlineCalendar className="w-4 h-4" />
-                    Placed on {formatDate(order.createdAt)}
-                  </div>
-                  <div className="flex items-center gap-2 font-medium" style={{ color: statusInfo.color }}>
-                    <StatusIcon className="w-4 h-4" />
-                    {statusInfo.label}
-                  </div>
-                </div>
-                <p className="mt-2 text-sm" style={{ color: "#8C6141" }}>
-                  {statusInfo.description}
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-2xl font-bold mb-1" style={{ color: "#5A0117" }}>
-                  {formatPrice(order.totalAmount)}
-                </p>
-                <p className="text-sm" style={{ color: "#8C6141" }}>
-                  {order.paymentMethod?.toUpperCase()} • {order.items?.length || 0} item(s)
-                </p>
-              </div>
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-2xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+                Order {getOrderId(order)}
+              </h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border}`}>
+                {statusInfo.label}
+              </span>
             </div>
           </div>
+          <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-700 shadow-sm transition-all">
+            <AiOutlineDownload className="w-4 h-4" /> Invoice
+          </button>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Order Items */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                  Order Items
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* LEFT COLUMN: Stepper & Products (8 Cols) */}
+          <div className="lg:col-span-8 space-y-6">
+
+            {/* Status Stepper */}
+            {!isCancelled && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="relative">
+                  <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 rounded-full z-0"></div>
+                  <div
+                    className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-[#5A0117] to-[#8C6141] -translate-y-1/2 rounded-full z-0 transition-all duration-700"
+                    style={{ width: `${((statusInfo.step - 1) / 4) * 100}%` }}
+                  ></div>
+                  <div className="relative z-10 flex justify-between w-full">
+                    {[1, 2, 3, 4, 5].map((step) => {
+                      const isActive = statusInfo.step >= step
+                      const isCurrent = statusInfo.step === step
+                      return (
+                        <div key={step} className="flex flex-col items-center gap-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive ? 'bg-[#5A0117] border-[#5A0117] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
+                            {isActive ? <MdDone className="w-4 h-4" /> : <span className="text-xs">{step}</span>}
+                          </div>
+                          <span className={`text-[10px] sm:text-xs font-medium ${isActive ? 'text-[#5A0117]' : 'text-gray-400'} hidden sm:block`}>
+                            {ORDER_STATUSES.find(s => s.step === step)?.label}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Product List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex justify-between items-center">
+                <h2 className="font-bold text-lg" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+                  Items ({order.items?.length})
                 </h2>
+                <span className="text-xs text-gray-500 uppercase tracking-wider">Details</span>
+              </div>
 
-                <div className="space-y-4">
-                  {order.items?.map((item, index) => {
-                    // Debug logging for each item
-                    console.log(`📦 ORDER DETAIL - RENDERING ITEM ${index + 1}:`, {
-                      name: item.name,
-                      itemType: item.itemType, 
-                      productId: item.productId?._id,
-                      images: item.productId?.images,
-                      imageCount: item.productId?.images?.length || 0,
-                      clickHref: item.productId?._id ? (item.itemType === 'productOption' ? `/products/option/${item.productId._id}` : `/products/${item.productId?.slug || item.productId._id}`) : 'NO_PRODUCT_ID',
-                      hasProductId: !!item.productId?._id,
-                      fullItem: item
-                    })
-                    
-                    // For legacy orders without productId, try to find product by name
-                    const hasProductId = item.productId?._id
-                    const productName = item.name || item.productId?.name
-                    
-                    return (
-                      <div key={index} className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow">
-                        {/* Product Image - Clickable or Static */}
-                        <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                          {hasProductId ? (
-                            <Link 
-                              href={item.itemType === 'productOption' ? `/products/option/${item.productId._id}` : `/products/${item.productId?.slug || item.productId._id}`}
-                              className="block w-full h-full hover:opacity-90 transition-opacity"
-                            >
-                              {item.productId?.images && item.productId.images.length > 0 ? (
-                                <img
-                                  src={item.productId.images[0]}
-                                  alt={productName}
-                                  className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none'
-                                    e.target.nextSibling.style.display = 'flex'
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 transition-colors cursor-pointer">
-                                  <AiOutlineShopping className="w-8 h-8" style={{ color: "#8C6141" }} />
-                                </div>
-                              )}
-                              <div className="w-full h-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 transition-colors cursor-pointer" style={{
-                                display: item.productId?.images && item.productId.images.length > 0 ? 'none' : 'flex'
-                              }}>
-                                <AiOutlineShopping className="w-8 h-8" style={{ color: "#8C6141" }} />
-                              </div>
-                            </Link>
+              <div className="divide-y divide-gray-50">
+                {order.items?.map((item, index) => {
+                  const hasProductId = item.productId?._id
+                  const productName = item.name || item.productId?.name
+                  // Generate a mock SKU based on ID for professional look
+                  const mockSku = item.productId?._id ? `SKU-${item.productId._id.slice(-6).toUpperCase()}` : 'N/A'
+
+                  return (
+                    <div key={index} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors group">
+                      <div className="flex gap-4 sm:gap-6">
+                        {/* Image */}
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden flex-shrink-0 relative">
+                          {hasProductId && item.productId?.images?.[0] ? (
+                            <img src={item.productId.images[0]} alt={productName} className="w-full h-full object-cover" />
                           ) : (
-                            // Legacy order - no productId reference, show static icon
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-300">
-                              <div className="text-center">
-                                <AiOutlineShopping className="w-8 h-8 mx-auto mb-1" style={{ color: "#8C6141" }} />
-                                <p className="text-xs" style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}>Legacy Order</p>
-                              </div>
-                            </div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-400"><AiOutlineShopping className="w-8 h-8" /></div>
                           )}
                         </div>
-                        
-                        {/* Product Details */}
-                        <div className="flex-1">
-                          {hasProductId ? (
-                            <Link
-                              href={item.itemType === 'productOption' ? `/products/option/${item.productId._id}` : `/products/${item.productId?.slug || item.productId._id}`}
-                              className="font-medium mb-1 hover:underline cursor-pointer transition-colors inline-block text-lg"
-                              style={{ color: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
-                            >
-                              {productName}
-                              {item.itemType === 'productOption' && item.productId?.size && item.productId?.color && (
-                                <span className="text-sm font-normal ml-2 text-gray-600">
-                                  ({item.productId.size}, {item.productId.color})
-                                </span>
-                              )}
-                            </Link>
-                          ) : (
-                            <div>
-                              <h3 className="font-medium mb-1 text-lg" style={{ color: "#5A0117", fontFamily: "Montserrat, sans-serif" }}>
-                                {productName}
-                              </h3>
-                              <p className="text-xs text-orange-600 mb-1" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                                ⚠️ Legacy order - Product details not available
-                              </p>
+
+                        {/* Details */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <h3 className="font-semibold text-gray-900 line-clamp-1" style={{ fontFamily: "Montserrat, sans-serif" }}>{productName}</h3>
+                                <p className="text-xs text-gray-400 font-mono mt-0.5">{mockSku}</p>
+                              </div>
+                              <p className="font-bold text-lg" style={{ color: "#5A0117" }}>{formatPrice(item.price * item.quantity)}</p>
                             </div>
-                          )}
-                          <p className="text-sm mb-1" style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}>
-                            {formatPrice(item.price)} each
-                          </p>
+
+                            {/* Attributes Chips */}
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {item.itemType === 'productOption' && (
+                                <>
+                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                    Size: {item.productId?.size}
+                                  </span>
+                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                    Color: {item.productId?.color}
+                                  </span>
+                                </>
+                              )}
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100">
+                                Qty: {item.quantity}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Item Actions */}
                           {hasProductId && (
-                            <p className="text-xs opacity-75" style={{ color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}>
-                              Click to view {item.itemType === 'productOption' ? 'product option' : 'product'} details
-                            </p>
+                            <div className="mt-3 flex gap-4">
+                              <Link href={`/products/${item.productId?.slug || item.productId?._id}`} className="text-xs font-medium flex items-center gap-1 text-[#8C6141] hover:text-[#5A0117] transition-colors">
+                                <AiOutlineEye /> View Product
+                              </Link>
+                            </div>
                           )}
-                        </div>
-                        
-                        {/* Quantity and Price */}
-                        <div className="text-right">
-                          <p className="font-medium mb-1" style={{ color: "#5A0117", fontFamily: "Montserrat, sans-serif" }}>
-                            Qty: {item.quantity}
-                          </p>
-                          <p className="text-lg font-bold" style={{ color: "#5A0117", fontFamily: "Montserrat, sans-serif" }}>
-                            {formatPrice(item.price * item.quantity)}
-                          </p>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
 
-                {/* Order Summary */}
-                <div className="mt-6 pt-6 border-t">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span style={{ color: "#8C6141" }}>Subtotal:</span>
-                      <span style={{ color: "#5A0117" }}>{formatPrice(calculateSubtotal())}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span style={{ color: "#8C6141" }}>Shipping:</span>
-                      <span style={{ color: "#5A0117" }}>
-                        {getShipping() === 0 ? 'Free' : formatPrice(getShipping())}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold pt-2 border-t" style={{ color: "#5A0117" }}>
-                      <span>Total:</span>
-                      <span>{formatPrice(order.totalAmount)}</span>
+          {/* RIGHT COLUMN: Info Sidebar (4 Cols) - Sticky */}
+          <div className="lg:col-span-4 space-y-6">
+
+            {/* Customer & Address Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="font-bold text-sm uppercase tracking-wide" style={{ color: "#5A0117" }}>Customer Details</h3>
+              </div>
+
+              <div className="p-5 space-y-6">
+                {/* Contact Info */}
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><AiOutlineUser className="w-5 h-5" /></div>
+                  <div className="overflow-hidden">
+                    <p className="font-semibold text-gray-900">{currentUser.name || 'Valued Customer'}</p>
+                    <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                      <AiOutlineMail className="flex-shrink-0" />
+                      <span className="truncate">{currentUser.email}</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Order Info Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="space-y-6">
+                <hr className="border-dashed border-gray-200" />
+
                 {/* Shipping Address */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                    <MdLocationOn className="w-5 h-5" />
-                    Shipping Address
-                  </h3>
-                  <div className="space-y-2 text-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                    <p className="font-medium" style={{ color: "#5A0117" }}>
-                      {order.shippingAddress?.name}
-                    </p>
-                    <p style={{ color: "#8C6141" }}>
-                      {order.shippingAddress?.address}
-                    </p>
-                    <p style={{ color: "#8C6141" }}>
-                      {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.pincode}
-                    </p>
-                    <div className="flex items-center gap-2 pt-2">
-                      <AiOutlinePhone className="w-4 h-4" />
-                      <span style={{ color: "#8C6141" }}>{order.shippingAddress?.phone}</span>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><MdLocationOn className="w-5 h-5" /></div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm mb-1">Shipping Address</p>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      <p className="font-medium text-gray-800">{order.shippingAddress?.name}</p>
+                      <p>{order.shippingAddress?.address}</p>
+                      <p>{order.shippingAddress?.city}, {order.shippingAddress?.state}</p>
+                      <p>{order.shippingAddress?.pincode}</p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Payment Info */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                    <MdPayment className="w-5 h-5" />
-                    Payment Information
-                  </h3>
-                  <div className="space-y-3 text-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                    <div>
-                      <span style={{ color: "#8C6141" }}>Payment Method:</span>
-                      <p className="font-medium" style={{ color: "#5A0117" }}>
-                        {order.paymentMethod?.toUpperCase() === 'COD' ? 'Cash on Delivery' : order.paymentMethod?.toUpperCase()}
-                      </p>
+                    <div className="flex items-center gap-2 mt-2 text-sm font-medium text-[#5A0117] bg-[#5A0117]/5 px-2 py-1 rounded w-fit">
+                      <AiOutlinePhone /> {order.shippingAddress?.phone}
                     </div>
-                    <div>
-                      <span style={{ color: "#8C6141" }}>Payment Status:</span>
-                      <p className={`font-medium ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
-                      </p>
-                    </div>
-                    <div>
-                      <span style={{ color: "#8C6141" }}>Total Amount:</span>
-                      <p className="font-bold text-lg" style={{ color: "#5A0117" }}>
-                        {formatPrice(order.totalAmount)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Order Timeline (Future Enhancement) */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-bold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                    Order Status
-                  </h3>
-                  <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: `${statusInfo.color}10` }}>
-                    <StatusIcon className="w-6 h-6" style={{ color: statusInfo.color }} />
-                    <div>
-                      <p className="font-medium" style={{ color: "#5A0117" }}>
-                        {statusInfo.label}
-                      </p>
-                      <p className="text-xs" style={{ color: "#8C6141" }}>
-                        {statusInfo.description}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs text-center" style={{ color: "#8C6141" }}>
-                      💡 Orders cannot be cancelled once placed.
-                      <br />
-                      Contact support if you need assistance.
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Payment Summary Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden lg:sticky lg:top-6">
+              <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="font-bold text-sm uppercase tracking-wide" style={{ color: "#5A0117" }}>Payment Info</h3>
+              </div>
+
+              <div className="p-5">
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{formatPrice(order.totalAmount)}</span> {/* Simplified for example */}
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="text-emerald-600 font-medium">Free</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax (Included)</span>
+                    <span>{formatPrice(0)}</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-bold text-gray-900">Total Paid</span>
+                    <span className="font-bold text-xl" style={{ color: "#5A0117" }}>{formatPrice(order.totalAmount)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <MdPayment className="text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">{order.paymentMethod?.toUpperCase()}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded font-medium capitalize ${order.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {order.paymentStatus}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </main>
+      <Footer />
+    </div>
+  )
+}
 
+// Sub-components for cleaner file structure
+function LoadingState() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2" style={{ borderColor: "#5A0117" }}></div>
+      </main>
+    </div>
+  )
+}
+
+function ErrorState({ isAuth }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="text-center max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+          <MdSecurity className="mx-auto h-16 w-16 opacity-20 mb-4" style={{ color: "#5A0117" }} />
+          <h1 className="text-xl font-bold mb-2" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+            {!isAuth ? "Access Restricted" : "Order Not Found"}
+          </h1>
+          <Link
+            href={!isAuth ? "/login" : "/orders"}
+            className="inline-block px-6 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity mt-4"
+            style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+          >
+            {!isAuth ? "Login Now" : "View All Orders"}
+          </Link>
+        </div>
+      </main>
       <Footer />
     </div>
   )

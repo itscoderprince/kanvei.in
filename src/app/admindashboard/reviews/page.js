@@ -1,18 +1,18 @@
 "use client"
 import { useState, useEffect } from "react"
 import AdminLayout from "../../../components/shared/AdminLayout"
-import { useToast } from "../../../contexts/ToastContext"
-import { 
-  AiOutlineEye, 
-  AiOutlineEdit, 
-  AiOutlineDelete, 
+import toast from "react-hot-toast"
+import {
+  AiOutlineEye,
+  AiOutlineEdit,
+  AiOutlineDelete,
   AiOutlinePlus,
   AiFillStar
 } from "react-icons/ai"
 import { MdSearch, MdRefresh } from "react-icons/md"
 
 export default function AdminReviews() {
-  const { showSuccess, showError } = useToast()
+
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -40,7 +40,7 @@ export default function AdminReviews() {
       }
     } catch (error) {
       console.error("Error fetching reviews:", error)
-      showError("Error fetching reviews")
+      toast.error("Error fetching reviews")
     } finally {
       setLoading(false)
     }
@@ -61,7 +61,7 @@ export default function AdminReviews() {
   const handleAddReview = async (e) => {
     e.preventDefault()
     if (!newReview.productId || !newReview.userName.trim() || !newReview.comment.trim()) {
-      showError("Please fill all fields")
+      toast.error("Please fill all fields")
       return
     }
 
@@ -75,7 +75,7 @@ export default function AdminReviews() {
 
       const data = await res.json()
       if (data.success) {
-        showSuccess("✅ Review added successfully!")
+        toast.success("✅ Review added successfully!")
         setShowAddModal(false)
         setNewReview({
           productId: "",
@@ -85,11 +85,11 @@ export default function AdminReviews() {
         })
         fetchReviews()
       } else {
-        showError(`❌ ${data.error || "Failed to add review"}`)
+        toast.error(`❌ ${data.error || "Failed to add review"}`)
       }
     } catch (error) {
       console.error("Error adding review:", error)
-      showError("❌ Error adding review")
+      toast.error("❌ Error adding review")
     } finally {
       setAddingReview(false)
     }
@@ -105,14 +105,14 @@ export default function AdminReviews() {
 
       const data = await res.json()
       if (data.success) {
-        showSuccess("✅ Review deleted successfully!")
+        toast.success("✅ Review deleted successfully!")
         fetchReviews()
       } else {
-        showError(`❌ ${data.error || "Failed to delete review"}`)
+        toast.error(`❌ ${data.error || "Failed to delete review"}`)
       }
     } catch (error) {
       console.error("Error deleting review:", error)
-      showError("❌ Error deleting review")
+      toast.error("❌ Error deleting review")
     }
   }
 
@@ -345,9 +345,8 @@ export default function AdminReviews() {
                         key={star}
                         type="button"
                         onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
-                        className={`text-3xl transition-colors ${
-                          star <= newReview.rating ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-yellow-300'
-                        }`}
+                        className={`text-3xl transition-colors ${star <= newReview.rating ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-yellow-300'
+                          }`}
                       >
                         ★
                       </button>

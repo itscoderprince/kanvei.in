@@ -10,6 +10,17 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to, subject, html) => {
   try {
+    console.log(`📧 Attempting to send email to: ${to} | Subject: ${subject}`)
+
+    // Verify transporter connection first
+    try {
+      await transporter.verify()
+      console.log('✅ SMTP Connection verified')
+    } catch (verifyError) {
+      console.error('❌ SMTP Connection Failed:', verifyError)
+      return { success: false, error: "SMTP Connection Failed: " + verifyError.message }
+    }
+
     const mailOptions = {
       from: `"Kanvei" <${process.env.EMAIL_USER}>`,
       to,
@@ -18,9 +29,10 @@ export const sendEmail = async (to, subject, html) => {
     }
 
     const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Email sent successfully:', result.messageId)
     return { success: true, messageId: result.messageId }
   } catch (error) {
-    console.error("Email sending error:", error)
+    console.error("❌ Email sending error details:", error)
     return { success: false, error: error.message }
   }
 }
@@ -63,18 +75,17 @@ export const sendOrderConfirmationEmail = async (order, customerEmail) => {
             <p><strong>Payment Method:</strong> ${order.paymentMethod.toUpperCase()}</p>
             
             <h4 style="color: #5A0117;">Items Ordered:</h4>
-            ${
-              order.items
-                ?.map(
-                  (item) => `
+            ${order.items
+      ?.map(
+        (item) => `
               <div class="item">
                 <span>${item.name} x ${item.quantity}</span>
                 <span>₹${(item.price * item.quantity).toFixed(2)}</span>
               </div>
             `,
-                )
-                .join("") || ""
-            }
+      )
+      .join("") || ""
+    }
             
             <div class="item total">
               <span>Total Amount</span>
@@ -151,10 +162,10 @@ export const sendContactEmail = async (name, email, subject, message) => {
 
 // Send login notification email
 export const sendLoginNotificationEmail = async (userEmail, userName, loginType = 'Regular', loginTime, ipAddress = 'Unknown', userAgent = 'Unknown', isNewUser = false) => {
-  const subject = isNewUser ? 
-    `🎉 Welcome to Kanvei! Your ${loginType} Account is Ready` : 
+  const subject = isNewUser ?
+    `🎉 Welcome to Kanvei! Your ${loginType} Account is Ready` :
     `🔒 Login Notification - ${loginType} Login Detected`
-  
+
   const formattedTime = new Date(loginTime).toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     year: 'numeric',
@@ -197,10 +208,10 @@ export const sendLoginNotificationEmail = async (userEmail, userName, loginType 
           <div class="success-badge">${isNewUser ? '🎉 Account Created' : '✅ Successful Login'}</div>
           
           <h2 style="color: #5A0117; margin-bottom: 10px;">Hello ${userName}!</h2>
-          ${isNewUser ? 
-            `<p style="font-size: 16px; margin-bottom: 25px; color: #22c55e;"><strong>Welcome to Kanvei!</strong> Your account has been successfully created using ${loginType}. We're excited to have you join our community!</p>` :
-            `<p style="font-size: 16px; margin-bottom: 25px;">We detected a successful login to your Kanvei account. Here are the details:</p>`
-          }
+          ${isNewUser ?
+      `<p style="font-size: 16px; margin-bottom: 25px; color: #22c55e;"><strong>Welcome to Kanvei!</strong> Your account has been successfully created using ${loginType}. We're excited to have you join our community!</p>` :
+      `<p style="font-size: 16px; margin-bottom: 25px;">We detected a successful login to your Kanvei account. Here are the details:</p>`
+    }
           
           <div class="login-details">
             <h3 style="color: #5A0117; margin-top: 0; margin-bottom: 20px;">Login Information</h3>
@@ -231,8 +242,8 @@ export const sendLoginNotificationEmail = async (userEmail, userName, loginType 
             </div>
           </div>
           
-          ${isNewUser ? 
-            `<div style="background-color: #f0f9ff; border-left: 4px solid #22c55e; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          ${isNewUser ?
+      `<div style="background-color: #f0f9ff; border-left: 4px solid #22c55e; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
               <h4 style="margin-top: 0; color: #22c55e;">🎉 What's Next?</h4>
               <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #333;">
                 <li style="margin-bottom: 8px;">Browse our latest collection of premium fashion items</li>
@@ -241,11 +252,11 @@ export const sendLoginNotificationEmail = async (userEmail, userName, loginType 
                 <li style="margin-bottom: 0;">Get updates on new arrivals and exclusive offers</li>
               </ul>
             </div>` :
-            `<div class="security-info">
+      `<div class="security-info">
               <h4 style="margin-top: 0; color: #1e40af;">🛷️ Security Information</h4>
               <p style="margin: 0; font-size: 14px;">If this login was made by you, no action is required. If you didn't authorize this login, please contact our support team immediately at <strong>kanvei.in@gmail.com</strong> or call <strong>+91 7488425690</strong>.</p>
             </div>`
-          }
+    }
           
           <p style="margin-top: 25px; font-size: 14px; color: #666;">Thank you for using Kanvei! We're committed to keeping your account secure.</p>
         </div>
@@ -266,7 +277,7 @@ export const sendLoginNotificationEmail = async (userEmail, userName, loginType 
 // Send admin login notification email
 export const sendAdminLoginNotificationEmail = async (adminEmail, adminName, loginTime, ipAddress = 'Unknown', userAgent = 'Unknown') => {
   const subject = `🔐 Admin Login Alert - Account Access Detected`
-  
+
   const formattedTime = new Date(loginTime).toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     year: 'numeric',

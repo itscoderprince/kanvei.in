@@ -4,10 +4,9 @@ import { CartProvider } from "../contexts/CartContext"
 import { WishlistProvider } from "../contexts/WishlistContext"
 import { AuthProvider } from "../contexts/AuthContext"
 import { NotificationProvider } from "../contexts/NotificationContext"
-import { ToastProvider } from "../contexts/ToastContext"
 import NextAuthSessionProvider from "../components/SessionProvider"
 import NotificationContainer from "../components/NotificationContainer"
-import { Toaster } from "../components/ui/toaster"
+import { Toaster } from "react-hot-toast"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,18 +33,16 @@ export default function RootLayout({ children }) {
         <NextAuthSessionProvider>
           <AuthProvider>
             <NotificationProvider>
-              <ToastProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    {children}
-                    <NotificationContainer />
-                  </WishlistProvider>
-                </CartProvider>
-              </ToastProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  {children}
+                  <NotificationContainer />
+                </WishlistProvider>
+              </CartProvider>
             </NotificationProvider>
           </AuthProvider>
         </NextAuthSessionProvider>
-        <Toaster />
+        <Toaster position="bottom-right" reverseOrder={false} />
       </body>
     </html>
   )

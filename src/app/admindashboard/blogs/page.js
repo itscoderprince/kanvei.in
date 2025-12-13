@@ -4,6 +4,20 @@ import Link from "next/link"
 import AdminLayout from "../../../components/shared/AdminLayout"
 import ProtectedRoute from "../../../components/ProtectedRoute"
 import { useNotification } from "../../../contexts/NotificationContext"
+import {
+  Edit,
+  Plus,
+  Trash2,
+  Search,
+  Filter,
+  ArrowUpDown,
+  FileText,
+  Activity,
+  MoreHorizontal,
+  Eye,
+  Calendar,
+  Clock
+} from "lucide-react"
 
 export default function AdminBlogs() {
   const [blogs, setBlogs] = useState([])
@@ -89,158 +103,184 @@ export default function AdminBlogs() {
   return (
     <ProtectedRoute adminOnly={true}>
       <AdminLayout>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold" style={{ color: "#5A0117", fontFamily: "Sugar, serif" }}>
-              Blog Management
-            </h1>
+        <div className="p-6 max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold font-serif text-[#5A0117]">
+                Blog Management
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage your blog posts, publication status, and content.
+              </p>
+            </div>
             <Link
               href="/admindashboard/blogs/new"
-              className="px-6 py-3 text-white rounded-lg hover:opacity-80 transition-opacity"
-              style={{ backgroundColor: "#5A0117" }}
+              className="inline-flex items-center justify-center gap-2 bg-[#5A0117] text-white px-5 py-2.5 rounded-xl hover:bg-[#5A0117]/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
-              Create New Blog
+              <Plus size={20} />
+              <span className="font-medium">Create New Blog</span>
             </Link>
           </div>
 
-          {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          {/* Controls Bar */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 sticky top-4 z-10 backdrop-blur-xl bg-white/95">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                  Search Blogs
-                </label>
+              {/* Search */}
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={18} />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by title, description, or tags..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50"
-                  style={{ focusRingColor: "#5A0117" }}
+                  placeholder="Search articles..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#5A0117] focus:border-transparent outline-none transition-all placeholder:text-gray-400"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                  Filter by Status
-                </label>
+              {/* Status Filter */}
+              <div className="relative group">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={18} />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50"
-                  style={{ focusRingColor: "#5A0117" }}
+                  className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#5A0117] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
                 >
-                  <option value="all">All Blogs</option>
+                  <option value="all">All Status</option>
                   <option value="published">Published</option>
-                  <option value="draft">Draft</option>
+                  <option value="draft">Drafts</option>
                 </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ArrowUpDown size={14} />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "#5A0117" }}>
-                  Sort by
-                </label>
+              {/* Sort */}
+              <div className="relative group">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={18} />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50"
-                  style={{ focusRingColor: "#5A0117" }}
+                  className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#5A0117] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                   <option value="title">Title A-Z</option>
                 </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ArrowUpDown size={14} />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Blogs Table */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {/* Content Area */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {loading ? (
-              <div className="p-8 text-center">
-                <div
-                  className="animate-spin rounded-full h-8 w-8 mx-auto mb-4"
-                  style={{ borderColor: "#5A0117", borderTopColor: "transparent", borderWidth: "2px" }}
-                ></div>
-                <p>Loading blogs...</p>
+              <div className="p-12 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#5A0117] border-t-transparent" />
+                <p className="text-gray-500 font-medium">Loading your articles...</p>
               </div>
             ) : blogs.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-gray-500 mb-4">No blogs found</p>
+              <div className="p-16 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <FileText size={32} className="text-gray-400" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">No blogs found</h3>
+                <p className="text-gray-500 max-w-xs mx-auto mb-6">
+                  {searchTerm
+                    ? "Try adjusting your search or filters to find what you're looking for."
+                    : "Get started by creating your first blog post to engage your audience."
+                  }
+                </p>
                 <Link
                   href="/admindashboard/blogs/new"
-                  className="px-4 py-2 text-white rounded-lg hover:opacity-80"
-                  style={{ backgroundColor: "#5A0117" }}
+                  className="inline-flex items-center gap-2 bg-[#5A0117] text-white px-6 py-2.5 rounded-xl hover:bg-[#5A0117]/90 transition-all font-medium"
                 >
-                  Create Your First Blog
+                  <Plus size={18} /> Create Post
                 </Link>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead style={{ backgroundColor: "#DBCCB7" }}>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Title
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Author
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Created
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Read Time
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: "#5A0117" }}>
-                        Actions
-                      </th>
+                  <thead>
+                    <tr className="bg-[#5A0117]/5 border-b border-[#5A0117]/10 text-left">
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider">Article Details</th>
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider">Author</th>
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider">Published Date</th>
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider">Read Time</th>
+                      <th className="px-6 py-4 text-xs font-bold text-[#5A0117] uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {blogs.map((blog) => (
-                      <tr key={blog._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="font-medium text-gray-900">{blog.title}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">{blog.description}</div>
+                      <tr key={blog._id} className="group hover:bg-gray-50/80 transition-colors">
+                        <td className="px-6 py-4 max-w-md">
+                          <div className="flex items-start gap-4">
+                            {blog.heroImage ? (
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
+                                <img src={blog.heroImage} alt="" className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-400">
+                                <FileText size={20} />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-semibold text-gray-900 group-hover:text-[#5A0117] transition-colors mb-0.5 line-clamp-1">
+                                {blog.title}
+                              </div>
+                              <div className="text-sm text-gray-500 line-clamp-1">{blog.description}</div>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{blog.author || "Anonymous"}</td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-700">{blog.author || "Anonymous"}</div>
+                        </td>
                         <td className="px-6 py-4">
                           <button
                             onClick={() => togglePublished(blog._id, blog.published)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              blog.published ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                            }`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${blog.published
+                                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                : "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
+                              }`}
                           >
+                            <span className={`w-1.5 h-1.5 rounded-full ${blog.published ? "bg-green-500" : "bg-yellow-500"}`} />
                             {blog.published ? "Published" : "Draft"}
                           </button>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {new Date(blog.createdAt).toLocaleDateString()}
+                          <div className="flex items-center gap-2">
+                            <Calendar size={14} className="text-gray-400" />
+                            {new Date(blog.createdAt).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {blog.readTime ? `${blog.readTime} min` : "N/A"}
+                          <div className="flex items-center gap-2">
+                            <Activity size={14} className="text-gray-400" />
+                            {blog.readTime ? `${blog.readTime} min read` : "N/A"}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex gap-2">
+                          <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                             <Link
                               href={`/admindashboard/blogs/edit/${blog._id}`}
-                              className="px-3 py-1 text-white rounded hover:opacity-80"
-                              style={{ backgroundColor: "#8C6141" }}
+                              className="p-2 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-[#5A0117] hover:border-[#5A0117]/30 transition-all shadow-sm"
+                              title="Edit Blog"
                             >
-                              Edit
+                              <Edit size={16} />
                             </Link>
                             <button
                               onClick={() => handleDelete(blog._id)}
-                              className="px-3 py-1 text-white rounded hover:opacity-80"
-                              style={{ backgroundColor: "#5A0117" }}
+                              className="p-2 text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                              title="Delete Blog"
                             >
-                              Delete
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>

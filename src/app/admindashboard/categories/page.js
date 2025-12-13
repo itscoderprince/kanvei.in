@@ -1,8 +1,19 @@
 "use client"
 import { useState, useEffect } from "react"
 import AdminLayout from "../../../components/shared/AdminLayout"
-import { toast } from "@/hooks/use-toast"
+import toast from "react-hot-toast"
 import CategoryForm from "../../../components/admin/CategoryForm"
+import {
+  FolderTree,
+  Plus,
+  Edit2,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  Folder,
+  FileText,
+  ImageIcon
+} from "lucide-react"
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([])
@@ -36,7 +47,7 @@ export default function AdminCategories() {
 
       const res = await fetch(url, {
         method,
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
@@ -48,17 +59,19 @@ export default function AdminCategories() {
         await fetchCategories()
         setShowForm(false)
         setEditingCategory(null)
-        toast({
-          variant: "success",
-          title: editingCategory ? "Category updated" : "Category created",
-          description: editingCategory ? "Category updated successfully!" : "Category created successfully!",
-        })
+        setShowForm(false)
+        setEditingCategory(null)
+        if (editingCategory) {
+          toast.success("Category updated successfully!")
+        } else {
+          toast.success("Category created successfully!")
+        }
       } else {
-        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to save category" })
+        toast.error(data.error || "Failed to save category")
       }
     } catch (error) {
       console.error("Error submitting category:", error)
-      toast({ variant: "destructive", title: "Error", description: "Error submitting category" })
+      toast.error("Error submitting category")
     }
   }
 
@@ -67,8 +80,8 @@ export default function AdminCategories() {
 
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('kanvei-token') : null
-      
-      const res = await fetch(`/api/categories/${categoryId}`, { 
+
+      const res = await fetch(`/api/categories/${categoryId}`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
@@ -78,17 +91,14 @@ export default function AdminCategories() {
       const data = await res.json()
       if (data.success) {
         await fetchCategories()
-        toast({ 
-          variant: "success", 
-          title: "Category deleted", 
-          description: `Category and ${data.deletedProducts} products deleted successfully!` 
-        })
+        await fetchCategories()
+        toast.success(`Category and ${data.deletedProducts} products deleted successfully!`)
       } else {
-        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to delete category" })
+        toast.error(data.error || "Failed to delete category")
       }
     } catch (error) {
       console.error("Error deleting category:", error)
-      toast({ variant: "destructive", title: "Error", description: "Error deleting category" })
+      toast.error("Error deleting category")
     }
   }
 
@@ -105,64 +115,97 @@ export default function AdminCategories() {
   const countTree = (nodes = []) => nodes.reduce((sum, n) => sum + 1 + countTree(n.subcategories || []), 0)
   const totalCategories = countTree(categories)
 
-  const CategoryNode = ({ node, parentName }) => {
-    const [expanded, setExpanded] = useState(false)
+  const CategoryNode = ({ node, parentName, level = 0 }) => {
+    const [expanded, setExpanded] = useState(true) // Default expanded for better visibility
     const hasChildren = (node.subcategories && node.subcategories.length > 0)
+
+    // Indentation based on recursion level
+    const paddingLeft = level * 24
+
     return (
-      <div className="border rounded-lg p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 p-3 sm:p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-            {hasChildren && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="w-8 h-8 flex items-center justify-center rounded border"
-                style={{ borderColor: "#AFABAA" }}
-                aria-label={expanded ? "Collapse" : "Expand"}
-                title={expanded ? "Collapse" : "Expand"}
-              >
-                <span style={{ color: "#5A0117", fontWeight: 700 }}>{expanded ? "−" : "+"}</span>
-              </button>
-            )}
-            {node.image && (
-              <img src={node.image || "/placeholder.svg"} alt={node.name} className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg" />
-            )}
-            <div>
-              <h3 className="text-lg font-semibold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                {parentName ? "📄" : "📁"} {node.name}
-              </h3>
-              {node.description && (
-                <p className="text-sm break-words" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                  {node.description}
-                </p>
+      <div className="group">
+        <div
+          className={`
+            flex items-center justify-between p-4 rounded-xl border border-transparent 
+            hover:bg-gray-50 hover:border-gray-100 transition-all duration-200
+            ${level === 0 ? 'bg-white shadow-sm border-gray-100 mb-2' : 'border-l-2 border-l-gray-100 ml-4 pl-4 border-y-0 border-r-0 rounded-none'}
+          `}
+        >
+          <div className="flex items-center gap-4 flex-1">
+            {/* Expand Toggle or Spacer */}
+            <div className="w-6 flex justify-center flex-shrink-0">
+              {hasChildren ? (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="p-1 rounded-md hover:bg-gray-200 text-gray-500 transition-colors"
+                >
+                  {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </button>
+              ) : (
+                <span className="w-4" />
               )}
-              <p className="text-xs mt-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#AFABAA" }}>
-                {parentName ? `Subcategory of ${parentName}` : `Main Category • ${node.subcategories?.length || 0} subcategories`}
+            </div>
+
+            {/* Icon/Image */}
+            <div className="relative">
+              {node.image ? (
+                <img
+                  src={node.image}
+                  alt={node.name}
+                  className="w-10 h-10 object-cover rounded-lg border border-gray-100 shadow-sm"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-[#5A0117]/5 rounded-lg flex items-center justify-center text-[#5A0117]">
+                  {parentName ? <FileText size={20} /> : <Folder size={20} />}
+                </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-gray-900 truncate" style={{ fontFamily: "Sugar, serif" }}>
+                {node.name}
+              </h3>
+              <p className="text-xs text-gray-500 truncate mt-0.5" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                {level === 0 ?
+                  `${node.subcategories?.length || 0} subcategories` :
+                  node.description || `Subcategory of ${parentName}`
+                }
               </p>
             </div>
           </div>
-          <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => handleEdit(node)}
-              className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm border-2 font-semibold rounded-md hover:opacity-80 transition-opacity"
-              style={{ borderColor: "#8C6141", color: "#8C6141", fontFamily: "Montserrat, sans-serif" }}
+              className="p-2 text-gray-400 hover:text-[#8C6141] hover:bg-[#8C6141]/10 rounded-lg transition-colors"
+              title="Edit"
             >
-              Edit
+              <Edit2 size={16} />
             </button>
             <button
               onClick={() => handleDelete(node._id)}
-              className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title="Delete"
             >
-              Delete
+              <Trash2 size={16} />
             </button>
           </div>
         </div>
 
+        {/* Recursive Children */}
         {hasChildren && expanded && (
-          <div className="mt-3 sm:mt-4 ml-4 sm:ml-8 space-y-2">
-            {node.subcategories.map((child) => (
-              <CategoryNode key={child._id} node={child} parentName={node.name} />
-            ))}
+          <div className="relative">
+            {/* Guide Line */}
+            {level === 0 && (
+              <div className="absolute left-[38px] top-0 bottom-4 w-px bg-gray-100" />
+            )}
+            <div className="space-y-1">
+              {node.subcategories.map((child) => (
+                <CategoryNode key={child._id} node={child} parentName={node.name} level={level + 1} />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -173,56 +216,62 @@ export default function AdminCategories() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              Categories & Subcategories
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
+              Categories
             </h1>
-            <p className="mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Manage your product categories and subcategories
+            <p className="mt-1 text-sm text-gray-500" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Organize your products with categories and subcategories
             </p>
           </div>
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-2 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#5A0117] hover:bg-[#4a0113] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A0117] transition-colors"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
             >
+              <Plus size={18} className="mr-2" />
               Add Category
             </button>
           )}
         </div>
 
-        {/* Form */}
-        {showForm && <CategoryForm category={editingCategory} onSubmit={handleSubmit} onCancel={handleCancel} />}
+        {/* Content */}
+        {showForm ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <CategoryForm category={editingCategory} onSubmit={handleSubmit} onCancel={handleCancel} />
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center gap-2">
+              <FolderTree size={18} className="text-[#5A0117]" />
+              <h2 className="text-sm font-semibold text-gray-700">Category Structure ({totalCategories})</h2>
+            </div>
 
-        {/* Categories List */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              All Categories ({totalCategories})
-            </h2>
+            <div className="p-6">
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-20 bg-gray-50 rounded-xl animate-pulse"></div>
+                  ))}
+                </div>
+              ) : categories.length > 0 ? (
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <CategoryNode key={category._id} node={category} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-400">
+                  <FolderTree size={48} className="mx-auto mb-4 text-gray-200" />
+                  <p className="font-medium text-gray-900">No categories found</p>
+                  <p className="text-sm mt-1">Create your first category to get started</p>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="p-4 sm:p-6">
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="bg-gray-200 rounded h-16 sm:h-20 animate-pulse"></div>
-                ))}
-              </div>
-            ) : categories.length > 0 ? (
-              <div className="space-y-6">
-                {categories.map((category) => (
-                  <CategoryNode key={category._id} node={category} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center py-8" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                No categories found. Create your first category!
-              </p>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </AdminLayout>
   )

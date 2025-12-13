@@ -4,6 +4,18 @@ import { useRouter } from "next/navigation"
 import AdminLayout from "../../../components/shared/AdminLayout"
 import ProductForm from "../../../components/admin/ProductForm"
 import { useNotification } from "../../../contexts/NotificationContext"
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit2,
+  Trash2,
+  MoreVertical,
+  Package,
+  Image as ImageIcon,
+  ChevronDown,
+  X
+} from "lucide-react"
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
@@ -58,22 +70,19 @@ export default function AdminProducts() {
   const filterProducts = () => {
     let filtered = [...allProducts]
 
-    // Search by name or description
     if (searchTerm) {
-      filtered = filtered.filter(product => 
+      filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
-    // Filter by category
     if (selectedCategory) {
-      filtered = filtered.filter(product => 
+      filtered = filtered.filter(product =>
         product.category.toLowerCase() === selectedCategory.toLowerCase()
       )
     }
 
-    // Filter by date range
     if (dateRange.start || dateRange.end) {
       filtered = filtered.filter(product => {
         const productDate = new Date(product.createdAt)
@@ -104,28 +113,17 @@ export default function AdminProducts() {
   const handlePresetDateFilter = (filterType) => {
     const today = new Date()
     const formatDate = (date) => date.toISOString().split('T')[0]
-    
+
     let startDate = null
     let endDate = formatDate(today)
-    
+
     switch (filterType) {
-      case '1week':
-        startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-        break
-      case '2weeks':
-        startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000)
-        break
-      case '1month':
-        startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
-        break
-      case '6months':
-        startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate())
-        break
-      case '1year':
-        startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-        break
+      case '1week': startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000); break
+      case '2weeks': startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000); break
+      case '1month': startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()); break
+      case '6months': startDate = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate()); break
+      case '1year': startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()); break
       case 'custom':
-        // For custom, don't set any dates, let user pick
         setDateRange({ start: "", end: "" })
         setDateFilterType('custom')
         return
@@ -134,12 +132,9 @@ export default function AdminProducts() {
         setDateFilterType("")
         return
     }
-    
+
     if (startDate) {
-      setDateRange({ 
-        start: formatDate(startDate), 
-        end: endDate 
-      })
+      setDateRange({ start: formatDate(startDate), end: endDate })
     }
     setDateFilterType(filterType)
   }
@@ -150,14 +145,13 @@ export default function AdminProducts() {
       const method = editingProduct ? "PUT" : "POST"
       const token = typeof window !== 'undefined' ? localStorage.getItem('kanvei-token') : null
 
-      // Add removed images info for cleanup if editing
       if (editingProduct && formData.removedImages) {
         formData.removedImages = formData.removedImages
       }
 
       const res = await fetch(url, {
         method,
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
@@ -169,16 +163,10 @@ export default function AdminProducts() {
         await fetchProducts()
         setShowForm(false)
         setEditingProduct(null)
-        
         showNotification(
-          editingProduct ? "Product updated successfully!" : "Product created successfully!", 
+          editingProduct ? "Product updated successfully!" : "Product created successfully!",
           "success"
         )
-        
-        // Redirect to products page after update
-        if (editingProduct) {
-          router.push('/admindashboard/products')
-        }
       } else {
         showNotification("Error: " + data.error, "error")
       }
@@ -193,8 +181,7 @@ export default function AdminProducts() {
 
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('kanvei-token') : null
-      
-      const res = await fetch(`/api/products/${productId}`, { 
+      const res = await fetch(`/api/products/${productId}`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
@@ -216,7 +203,6 @@ export default function AdminProducts() {
 
   const handleEdit = async (product) => {
     try {
-      // Fetch complete product data with all related collections
       const token = typeof window !== 'undefined' ? localStorage.getItem('kanvei-token') : null
       const res = await fetch(`/api/products/${product._id}`, {
         headers: {
@@ -224,10 +210,9 @@ export default function AdminProducts() {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
       })
-      
+
       const data = await res.json()
       if (data.success) {
-        console.log('📝 Complete product data for editing:', data.product)
         setEditingProduct(data.product)
         setShowForm(true)
       } else {
@@ -247,288 +232,204 @@ export default function AdminProducts() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900" style={{ fontFamily: "Sugar, serif" }}>
               Products
             </h1>
-            <p className="mt-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-              Manage your product inventory
+            <p className="mt-1 text-sm text-gray-500" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Manage your store&apos;s product inventory
             </p>
           </div>
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full sm:w-auto px-6 py-2 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#5A0117", fontFamily: "Montserrat, sans-serif" }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#5A0117] hover:bg-[#4a0113] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A0117] transition-colors"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
             >
+              <Plus size={18} className="mr-2" />
               Add Product
             </button>
           )}
         </div>
 
-        {/* Form */}
-        {showForm && <ProductForm product={editingProduct} onSubmit={handleSubmit} onCancel={handleCancel} />}
-
-        {/* Search and Filters */}
-        {!showForm && (
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-4" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-              Search & Filters
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Search Input */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                  Search Products
-                </label>
-                <input
-                  type="text"
-                  placeholder="Search by name or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                />
+        {/* Content Area */}
+        {showForm ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <ProductForm product={editingProduct} onSubmit={handleSubmit} onCancel={handleCancel} />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Filters */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center gap-2 mb-4 text-[#5A0117]">
+                <Filter size={18} />
+                <h3 className="font-semibold" style={{ fontFamily: "Sugar, serif" }}>Filters</h3>
               </div>
 
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                  Category
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category.name}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5A0117]/20 focus:border-[#5A0117]"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  />
+                </div>
 
-              {/* Date Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                  Date Filter
-                </label>
-                <select
-                  value={dateFilterType}
-                  onChange={(e) => handlePresetDateFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                >
-                  <option value="">All Time</option>
-                  <option value="1week">Last 1 Week</option>
-                  <option value="2weeks">Last 2 Weeks</option>
-                  <option value="1month">Last 1 Month</option>
-                  <option value="6months">Last 6 Months</option>
-                  <option value="1year">Last 1 Year</option>
-                  <option value="custom">Custom Date Range</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5A0117]/20 focus:border-[#5A0117] appearance-none"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category.name}>{category.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={dateFilterType}
+                    onChange={(e) => handlePresetDateFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5A0117]/20 focus:border-[#5A0117] appearance-none"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    <option value="">Sort by Date</option>
+                    <option value="1week">Last 1 Week</option>
+                    <option value="1month">Last 1 Month</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+
+                {(searchTerm || selectedCategory || dateFilterType) && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-4 py-2.5 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 hover:text-red-500 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <X size={16} /> Clear Filters
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Custom Date Range Inputs - Only show when custom is selected */}
-            {dateFilterType === 'custom' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={dateRange.start}
-                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}>
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={dateRange.end}
-                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                    style={{ fontFamily: "Montserrat, sans-serif", focusRingColor: "#5A0117" }}
-                  />
-                </div>
+            {/* Products Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                <span className="text-sm font-medium text-gray-600">
+                  Showing {products.length} of {allProducts.length} products
+                </span>
               </div>
-            )}
 
-            {/* Clear Filters Button */}
-            {(searchTerm || selectedCategory || dateRange.start || dateRange.end) && (
-              <div className="mt-4">
-                <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 border-2 font-semibold rounded-lg hover:opacity-80 transition-opacity"
-                  style={{
-                    borderColor: "#8C6141",
-                    color: "#8C6141",
-                    fontFamily: "Montserrat, sans-serif"
-                  }}
-                >
-                  Clear All Filters
-                </button>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Image</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {loading ? (
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i}>
+                          <td colSpan="6" className="px-6 py-4">
+                            <div className="h-10 bg-gray-50 rounded animate-pulse w-full"></div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : products.length > 0 ? (
+                      products.map((product) => (
+                        <tr key={product._id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                              {product.images?.[0] ? (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <ImageIcon size={20} />
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900 line-clamp-1">{product.name}</span>
+                              {product.featured && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#8C6141]/10 text-[#8C6141] w-fit mt-1">
+                                  Featured
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {product.category}
+                          </td>
+                          <td className="px-6 py-4 font-medium text-[#5A0117]">
+                            ₹{product.price}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${product.stock > 10 ? 'bg-green-50 text-green-700' :
+                                product.stock > 0 ? 'bg-yellow-50 text-yellow-700' :
+                                  'bg-red-50 text-red-700'
+                              }`}>
+                              {product.stock} in stock
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2 text-gray-400">
+                              <button
+                                onClick={() => handleEdit(product)}
+                                className="p-2 hover:bg-[#8C6141]/10 hover:text-[#8C6141] rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(product._id)}
+                                className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <Package size={48} className="mb-4 text-gray-200" />
+                            <p className="text-lg font-medium text-gray-900">No products found</p>
+                            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            )}
-
-            {/* Active Filters Display */}
-            {(searchTerm || selectedCategory || dateRange.start || dateRange.end || dateFilterType) && (
-              <div className="mt-3">
-                <p className="text-sm mb-2" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                  Active filters:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {searchTerm && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      Search: {searchTerm}
-                    </span>
-                  )}
-                  {selectedCategory && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      Category: {selectedCategory}
-                    </span>
-                  )}
-                  {dateFilterType && dateFilterType !== 'custom' && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      Date: {
-                        dateFilterType === '1week' ? 'Last 1 Week' :
-                        dateFilterType === '2weeks' ? 'Last 2 Weeks' :
-                        dateFilterType === '1month' ? 'Last 1 Month' :
-                        dateFilterType === '6months' ? 'Last 6 Months' :
-                        dateFilterType === '1year' ? 'Last 1 Year' : dateFilterType
-                      }
-                    </span>
-                  )}
-                  {dateFilterType === 'custom' && dateRange.start && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      From: {dateRange.start}
-                    </span>
-                  )}
-                  {dateFilterType === 'custom' && dateRange.end && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      To: {dateRange.end}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
-
-        {/* Products List */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold" style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}>
-                All Products ({products.length})
-              </h2>
-              {allProducts.length !== products.length && (
-                <p className="text-sm" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                  Showing {products.length} of {allProducts.length} products
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="p-4 sm:p-6">
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-gray-200 rounded h-24 animate-pulse"></div>
-                ))}
-              </div>
-            ) : products.length > 0 ? (
-              <div className="space-y-4">
-                {products.map((product) => (
-                  <div key={product._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 p-3 sm:p-4 border rounded-lg">
-                    <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                      {product.images?.[0] && (
-                        <img
-                          src={product.images[0] || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-14 h-14 sm:w-20 sm:h-20 object-cover rounded-lg"
-                        />
-                      )}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3
-                            className="text-lg font-semibold"
-                            style={{ fontFamily: "Sugar, serif", color: "#5A0117" }}
-                          >
-                            {product.name}
-                          </h3>
-                          {product.featured && (
-                            <span
-                              className="px-2 py-1 text-xs font-semibold text-white rounded"
-                              style={{ backgroundColor: "#8C6141" }}
-                            >
-                              Featured
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm mb-1 break-words" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                          {product.description?.substring(0, 100)}...
-                        </p>
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
-                          <span
-                            className="font-semibold"
-                            style={{ fontFamily: "Montserrat, sans-serif", color: "#5A0117" }}
-                          >
-                            ₹{product.price}
-                          </span>
-                          <span style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                            Category: {product.category}
-                          </span>
-                          <span
-                            className={product.stock > 0 ? "text-green-600" : "text-red-600"}
-                            style={{ fontFamily: "Montserrat, sans-serif" }}
-                          >
-                            Stock: {product.stock}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-1 sm:gap-2">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm border-2 font-semibold rounded-md hover:opacity-80 transition-opacity"
-                        style={{
-                          borderColor: "#8C6141",
-                          color: "#8C6141",
-                          fontFamily: "Montserrat, sans-serif",
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product._id)}
-                        className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors"
-                        style={{ fontFamily: "Montserrat, sans-serif" }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center py-8" style={{ fontFamily: "Montserrat, sans-serif", color: "#8C6141" }}>
-                No products found. Create your first product!
-              </p>
-            )}
-          </div>
-        </div>
       </div>
     </AdminLayout>
   )

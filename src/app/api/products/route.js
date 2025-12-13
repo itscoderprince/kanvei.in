@@ -15,7 +15,7 @@ export async function GET(request) {
     // Ensure database connection with retry logic
     let connectionAttempts = 0
     const maxAttempts = 3
-    
+
     while (connectionAttempts < maxAttempts) {
       try {
         await connectDB()
@@ -23,16 +23,16 @@ export async function GET(request) {
       } catch (dbError) {
         connectionAttempts++
         console.error(`Database connection attempt ${connectionAttempts} failed:`, dbError)
-        
+
         if (connectionAttempts >= maxAttempts) {
           throw new Error(`Failed to connect to database after ${maxAttempts} attempts`)
         }
-        
+
         // Wait before retrying
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
-    
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
     const subcategory = searchParams.get("subcategory")
@@ -47,10 +47,10 @@ export async function GET(request) {
     const skip = (page - 1) * limit
 
     const filter = {}
-    
+
     // Check if any filters are applied
     const hasFilters = search || priceMin || priceMax || inStock === 'true'
-    
+
     console.log('🔍 API Filter Parameters:', {
       category,
       subcategory,
@@ -63,49 +63,49 @@ export async function GET(request) {
       limit,
       hasFilters
     })
-    
+
     // Filter by category name if provided (supports hierarchical categories)
     if (category) {
       const Category = (await import("../../../lib/models/Category")).default
-      
+
       // Find the main category by name (case insensitive)
-      const categoryDoc = await Category.findOne({ 
-        name: { $regex: new RegExp(`^${category}$`, 'i') } 
+      const categoryDoc = await Category.findOne({
+        name: { $regex: new RegExp(`^${category}$`, 'i') }
       }).lean()
-      
+
       if (categoryDoc) {
         // Find all child categories of this parent category
-        const childCategories = await Category.find({ 
-          parentCategory: categoryDoc._id 
+        const childCategories = await Category.find({
+          parentCategory: categoryDoc._id
         }).lean()
-        
+
         // Create array of category IDs to include (parent + all children)
         const categoryIds = [categoryDoc._id]
         childCategories.forEach(child => {
           categoryIds.push(child._id)
         })
-        
+
         console.log(`🔍 Category Filter: ${category}`, {
           mainCategoryId: categoryDoc._id,
           childCategoryIds: childCategories.map(c => c._id),
           totalCategoriesIncluded: categoryIds.length
         })
-        
+
         // If subcategory is specified, only include that specific subcategory
         if (subcategory) {
-          const subcategoryDoc = childCategories.find(child => 
+          const subcategoryDoc = childCategories.find(child =>
             child.name.toLowerCase().includes(subcategory.toLowerCase()) ||
             child.slug === subcategory
           )
-          
+
           if (subcategoryDoc) {
             console.log(`🎨 Subcategory Filter: ${subcategory} (${subcategoryDoc.name})`)
             filter.categoryId = subcategoryDoc._id
           } else {
             console.log(`❌ Subcategory '${subcategory}' not found under '${category}'`)
-            return Response.json({ 
-              success: true, 
-              products: [], 
+            return Response.json({
+              success: true,
+              products: [],
               pagination: {
                 currentPage: 1,
                 totalPages: 0,
@@ -122,9 +122,9 @@ export async function GET(request) {
       } else {
         // If category not found, return empty results
         console.log(`❌ Category '${category}' not found in database`)
-        return Response.json({ 
-          success: true, 
-          products: [], 
+        return Response.json({
+          success: true,
+          products: [],
           pagination: {
             currentPage: 1,
             totalPages: 0,
@@ -135,9 +135,9 @@ export async function GET(request) {
         })
       }
     }
-    
+
     if (featured) filter.featured = featured === "true"
-    
+
     // Apply search filter
     if (search) {
       filter.$or = [
@@ -147,7 +147,7 @@ export async function GET(request) {
       ]
       console.log(`🔍 Search Filter: "${search}"`)
     }
-    
+
     // Apply price range filters
     if (priceMin || priceMax) {
       filter.price = {}
@@ -160,18 +160,18 @@ export async function GET(request) {
         console.log(`💰 Max Price Filter: ≤₹${priceMax}`)
       }
     }
-    
+
     // Apply stock filter
     if (inStock === 'true') {
       filter.stock = { $gt: 0 }
       console.log('📦 Stock Filter: In stock only')
     }
-    
+
     console.log('🎯 Final MongoDB Filter:', JSON.stringify(filter, null, 2))
 
     // Get total count for pagination
     const totalCount = await Product.countDocuments(filter)
-    
+
     // Build sort options
     let sortOptions = {}
     switch (sortBy) {
@@ -196,33 +196,40 @@ export async function GET(request) {
     let query = Product.find(filter)
       .populate('categoryId', 'name slug')
       .sort(sortOptions)
-    
+
     if (limit > 0) {
       query = query.skip(skip).limit(limit)
     }
     const productsFromDB = await query.lean()
 
-    // For each product, fetch its images from the ProductImage collection
-    const products = await Promise.all(
-      productsFromDB.map(async (product) => {
-        const productImages = await ProductImage.findOne({ productId: product._id }).lean()
-        return {
-          ...product,
-          images: productImages ? productImages.img : [],
-          category: product.categoryId?.name || '',
-          categorySlug: product.categoryId?.slug || ''
-        }
-      })
-    )
+    // Optimization: Batch fetch all images for these products in one query
+    const productIds = productsFromDB.map(p => p._id)
+    const allImages = await ProductImage.find({ productId: { $in: productIds } }).lean()
+
+    // Create a map for faster lookup: productId -> images
+    const imageMap = {}
+    allImages.forEach(imgDoc => {
+      imageMap[imgDoc.productId.toString()] = imgDoc.img
+    })
+
+    // Map images to products in memory
+    const products = productsFromDB.map(product => {
+      return {
+        ...product,
+        images: imageMap[product._id.toString()] || [],
+        category: product.categoryId?.name || '',
+        categorySlug: product.categoryId?.slug || ''
+      }
+    })
 
     // Calculate pagination metadata
     const hasMore = limit > 0 ? (skip + limit) < totalCount : false
     const currentPage = page
     const totalPages = limit > 0 ? Math.ceil(totalCount / limit) : 1
 
-    return Response.json({ 
-      success: true, 
-      products: products || [], 
+    return Response.json({
+      success: true,
+      products: products || [],
       pagination: {
         currentPage,
         totalPages,
@@ -233,8 +240,8 @@ export async function GET(request) {
     })
   } catch (error) {
     console.error('Products API Error:', error)
-    return Response.json({ 
-      success: false, 
+    return Response.json({
+      success: false,
       error: error.message || 'Failed to fetch products',
       products: [],
       pagination: {
