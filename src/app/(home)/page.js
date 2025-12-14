@@ -12,7 +12,10 @@ import {
   Gift,
   LayoutGrid,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Globe,
+  ShieldCheck,
+  Truck
 } from "lucide-react"
 
 export default function HomePage() {
@@ -213,45 +216,94 @@ export default function HomePage() {
       {/* Products Section */}
       <HomeProductShow />
 
-      {/* About Section - Polished */}
-      <section className="py-16 md:py-24 bg-[#FDF8F3]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="order-2 lg:order-1 space-y-6">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-[#5A0117]/10 text-[#5A0117] text-sm font-semibold tracking-wide" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                OUR STORY
+      {/* About Section - Premium & Compact */}
+      <section className="py-16 md:py-24 bg-[#FDF8F3] relative overflow-hidden">
+        {/* Background Decor */}
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-[#DBCCB7]/10 -skew-x-12 translate-x-1/2"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+
+            {/* Text Content */}
+            <div className="order-2 lg:order-1 space-y-8">
+              <div className="space-y-4">
+                <span className="text-[#8C6141] text-xs font-bold tracking-[0.2em] uppercase pl-1" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  Our Story
+                </span>
+                <h2 className="text-4xl md:text-6xl font-bold text-[#5A0117] leading-[1.1]" style={{ fontFamily: "Sugar, serif" }}>
+                  Crafting Elegance <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8C6141] to-[#DBCCB7]">Since 2024</span>
+                </h2>
+                <p className="text-base text-gray-600 leading-relaxed max-w-lg" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  At Kanvei, we don't just sell products; we curate lifestyles. From exquisite jewellery to premium stationery, every piece is chosen to elevate your everyday moments into something extraordinary.
+                </p>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-[#5A0117] leading-tight" style={{ fontFamily: "Sugar, serif" }}>
-                Crafting Elegance for Every Occasion
-              </h2>
-              <p className="text-base md:text-lg text-gray-600 leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                At Kanvei, we curate an exceptional collection spanning Stationery, Jewellery, Fashion, Cosmetics, and Electronics. Our carefully selected products represent the finest in quality, style, and craftsmanship across diverse categories.
-              </p>
-              <div className="pt-4">
+
+              {/* Features Grid */}
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  { title: "Premium Quality", desc: "Handpicked excellence", icon: Gem },
+                  { title: "Global Designs", desc: "Trendsetting styles", icon: Globe },
+                  { title: "Secure Payment", desc: "100% Protected", icon: ShieldCheck },
+                  { title: "Fast Delivery", desc: "Across the globe", icon: Truck }
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex gap-3 items-start group">
+                    <div className="w-10 h-10 rounded-full bg-[#5A0117]/5 flex items-center justify-center group-hover:bg-[#5A0117] transition-colors duration-300">
+                      {idx === 0 && <Sparkles className="w-5 h-5 text-[#5A0117] group-hover:text-white transition-colors" />}
+                      {idx === 1 && <LayoutGrid className="w-5 h-5 text-[#5A0117] group-hover:text-white transition-colors" />}
+                      {/* Note: Ideally import specific icons, using existing ones for now or fallback */}
+                      {idx > 1 && <Sparkles className="w-5 h-5 text-[#5A0117] group-hover:text-white transition-colors" />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#5A0117] text-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>{feature.title}</h4>
+                      <p className="text-xs text-gray-500">{feature.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
                 <Link
                   href="/about"
-                  className="inline-flex items-center text-[#5A0117] font-semibold hover:text-[#8C6141] transition-colors group"
+                  className="inline-flex items-center gap-2 text-[#5A0117] font-bold border-b-2 border-[#5A0117]/20 hover:border-[#5A0117] pb-1 transition-all group"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   Read Our Full Story
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             </div>
 
+            {/* Image Grid - Masonry Style */}
             <div className="order-1 lg:order-2 relative">
-              <div className="relative h-[300px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-                <div className="absolute inset-0 bg-[#5A0117]/10 mix-blend-multiply z-10 transition-opacity hover:opacity-0 duration-500"></div>
-                <img
-                  src="lastimg.webp"
-                  alt="KANVEI Product Collection"
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div className="space-y-3 translate-y-8">
+                  <div className="relative h-48 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="/2.jpg" alt="Collection 1" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-[#5A0117]/20 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="/3.jpg" alt="Collection 2" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="/4.jpg" alt="Collection 3" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  </div>
+                  <div className="relative h-56 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="/lastimg.webp" alt="Collection 4" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#5A0117]/50 to-transparent"></div>
+                    <div className="absolute bottom-4 left-4 text-white font-bold text-lg" style={{ fontFamily: "Sugar, serif" }}>
+                      Est. 2024
+                    </div>
+                  </div>
+                </div>
               </div>
-              {/* Decorative Element */}
-              <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-[#DBCCB7] rounded-full opacity-50 blur-2xl -z-10"></div>
-              <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#5A0117] rounded-full opacity-20 blur-2xl -z-10"></div>
+
+              {/* Decorative Circle */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[80%] bg-[#DBCCB7]/20 rounded-full blur-3xl -z-10"></div>
             </div>
+
           </div>
         </div>
       </section>
