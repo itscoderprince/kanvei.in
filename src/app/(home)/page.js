@@ -111,53 +111,101 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Promotional Banner - Full Width Editorial Style */}
-      <section className="w-full relative overflow-hidden bg-[#5A0117] py-16 md:py-24">
+      {/* Promotional Banner - Ultra Compact & Mobile Optimized */}
+      <section className="w-full relative overflow-hidden bg-[#5A0117] py-6 md:py-10">
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#8C6141]/40 via-[#5A0117] to-[#2b000a]"></div>
         <div className="absolute inset-0 opacity-10 bg-[url('/pattern-bg.png')] mix-blend-overlay"></div>
 
-        {/* Large Background Typography (Decor) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full overflow-hidden opacity-5 pointer-events-none select-none">
-          <div className="whitespace-nowrap text-[10rem] md:text-[15rem] font-bold text-white leading-none animate-marquee" style={{ fontFamily: "Sugar, serif" }}>
-            EXCLUSIVE COLLECTION • LIMITED EDITION • PREMIUM QUALITY •
-          </div>
-        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Content Container */}
+          <div className="relative z-10 grid md:grid-cols-2 gap-6 md:gap-12 items-center">
 
-        {/* Content Container */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-[#DBCCB7] text-xs md:text-sm font-medium tracking-[0.2em] backdrop-blur-sm border border-white/10 mb-8 animate-in slide-in-from-bottom-4 duration-700">
-            <Sparkles className="w-4 h-4" />
-            <span>SEASONAL OFFER</span>
-            <Sparkles className="w-4 h-4" />
-          </div>
+            {/* Left Side: Text Content & Actions */}
+            <div className="text-center md:text-left space-y-4">
+              <div>
+                <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold text-white mb-2 md:mb-4 leading-[1.1]" style={{ fontFamily: "Sugar, serif" }}>
+                  Elevate Your <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DBCCB7] to-[#FDF8F3]">Aesthetic</span>
+                </h2>
 
-          <h2 className="text-4xl md:text-7xl lg:text-8xl font-bold text-white mb-6 md:mb-8 tracking-tight" style={{ fontFamily: "Sugar, serif" }}>
-            Elevate Your <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DBCCB7] to-[#FDF8F3]">Aesthetic</span>
-          </h2>
+                <p className="text-white/80 text-xs md:text-base font-light leading-relaxed max-w-xl mx-auto md:mx-0" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  Experience the perfect blend of tradition and modernity. Get up to <span className="font-semibold text-[#DBCCB7]">50% OFF</span> on our curated premium selection.
+                </p>
+              </div>
 
-          <p className="text-base md:text-2xl text-white/80 mb-8 md:mb-10 max-w-2xl mx-auto font-light leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
-            Experience the perfect blend of tradition and modernity. <br className="hidden md:block" />
-            Get up to <span className="font-semibold text-[#DBCCB7]">50% OFF</span> on our curated premium selection.
-          </p>
+              {/* Actions - Smaller Buttons for Compactness */}
+              <div className="flex flex-row gap-3 justify-center md:justify-start">
+                <Link
+                  href="/products?sale=season"
+                  className="group relative inline-flex justify-center items-center gap-2 bg-white text-[#5A0117] px-5 py-2.5 rounded-full font-bold text-xs md:text-sm tracking-wide transition-all duration-300 hover:bg-[#DBCCB7] hover:scale-105 shadow-[0_0_20px_rgba(219,204,183,0.3)]"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  Shop The Look
+                  <ArrowRight className="w-3 h-3 md:w-4 md:h-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="/categories"
+                  className="inline-flex justify-center px-5 py-2.5 rounded-full font-bold text-xs md:text-sm text-white border border-white/30 hover:bg-white/10 transition-all duration-300 tracking-wide"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  View All
+                </Link>
+              </div>
+            </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/products?sale=season"
-              className="group relative inline-flex items-center gap-3 bg-white text-[#5A0117] px-8 py-3 md:px-10 md:py-4 rounded-full font-semibold text-base md:text-lg transition-all duration-300 hover:bg-[#DBCCB7] hover:scale-105 shadow-[0_0_40px_rgba(219,204,183,0.3)] hover:shadow-[0_0_60px_rgba(219,204,183,0.5)]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Shop The Look
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link
-              href="/categories"
-              className="px-8 py-3 md:px-10 md:py-4 rounded-full font-semibold text-base md:text-lg text-white border border-white/30 hover:bg-white/10 transition-all duration-300"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Explore Categories
-            </Link>
+            {/* Right Side: Creative Image Grid - Responsive */}
+            <div className="relative">
+              {/* Mobile View: Simplified 2-image row */}
+              <div className="flex md:hidden gap-2 justify-center mt-2">
+                <div className="relative w-1/2 h-32 rounded-xl overflow-hidden shadow-md">
+                  <img src="/cloth2.webp" alt="Fashion" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/10 mix-blend-multiply" />
+                </div>
+                <div className="relative w-1/2 h-32 rounded-xl overflow-hidden shadow-md">
+                  <img src="/jewelery.webp" alt="Jewellery" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/10 mix-blend-multiply" />
+                  {/* Mini Badge for Mobile */}
+                  <div className="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white font-bold border border-white/20">
+                    50% OFF
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop View: Full Masonry Grid (Hidden on Mobile) */}
+              <div className="hidden md:grid grid-cols-2 gap-3">
+                <div className="space-y-3 pt-8">
+                  <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500">
+                    <img src="/cloth2.webp" alt="Fashion" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
+                  </div>
+                  <div className="relative h-32 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-100">
+                    <img src="/jewelery.webp" alt="Jewellery" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="relative h-32 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-75">
+                    <img src="/cosmetic.webp" alt="Cosmetics" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
+                  </div>
+                  <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-150">
+                    <img src="/sationary.jpg" alt="Stationery" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
+                  </div>
+                </div>
+                {/* Decorative floating badge - Desktop */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-full">
+                  <div className="text-white font-bold text-center leading-none" style={{ fontFamily: "Sugar, serif" }}>
+                    <span className="text-xl">50%</span>
+                    <br />
+                    <span className="text-[10px] tracking-widest uppercase">OFF</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </section>
