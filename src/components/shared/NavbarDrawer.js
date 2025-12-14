@@ -150,7 +150,7 @@ export default function NavbarDrawer({ isOpen, onClose }) {
         </div>
 
         {/* Footer / User Profile Section */}
-        <div className="mt-auto border-t border-white/10 bg-black/10 p-4 shrink-0">
+        <div className="mt-auto border-t border-white/10 bg-black/10 p-6 pb-10 shrink-0">
           {isAuthenticated ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-2">
