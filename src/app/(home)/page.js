@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Truck
 } from "lucide-react"
+import Image from "next/image"
 
 export default function HomePage() {
   const [categories, setCategories] = useState([])
@@ -162,11 +163,11 @@ export default function HomePage() {
               {/* Mobile View: Simplified 2-image row */}
               <div className="flex md:hidden gap-2 justify-center mt-2">
                 <div className="relative w-1/2 h-32 rounded-xl overflow-hidden shadow-md">
-                  <img src="/cloth2.webp" alt="Fashion" className="w-full h-full object-cover" />
+                  <Image src="/cloth2.webp" alt="Fashion" fill className="object-cover" />
                   <div className="absolute inset-0 bg-black/10 mix-blend-multiply" />
                 </div>
                 <div className="relative w-1/2 h-32 rounded-xl overflow-hidden shadow-md">
-                  <img src="/jewelery.webp" alt="Jewellery" className="w-full h-full object-cover" />
+                  <Image src="/jewelery.webp" alt="Jewellery" fill className="object-cover" />
                   <div className="absolute inset-0 bg-black/10 mix-blend-multiply" />
                   {/* Mini Badge for Mobile */}
                   <div className="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white font-bold border border-white/20">
@@ -179,21 +180,21 @@ export default function HomePage() {
               <div className="hidden md:grid grid-cols-2 gap-3">
                 <div className="space-y-3 pt-8">
                   <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500">
-                    <img src="/cloth2.webp" alt="Fashion" className="w-full h-full object-cover" />
+                    <Image src="/cloth2.webp" alt="Fashion" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
                   </div>
                   <div className="relative h-32 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-100">
-                    <img src="/jewelery.webp" alt="Jewellery" className="w-full h-full object-cover" />
+                    <Image src="/jewelery.webp" alt="Jewellery" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="relative h-32 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-75">
-                    <img src="/cosmetic.webp" alt="Cosmetics" className="w-full h-full object-cover" />
+                    <Image src="/cosmetic.webp" alt="Cosmetics" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
                   </div>
                   <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg transform transition-transform hover:-translate-y-2 duration-500 delay-150">
-                    <img src="/sationary.jpg" alt="Stationery" className="w-full h-full object-cover" />
+                    <Image src="/sationary.jpg" alt="Stationery" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
                   </div>
                 </div>
@@ -235,7 +236,7 @@ export default function HomePage() {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8C6141] to-[#DBCCB7]">Since 2024</span>
                 </h2>
                 <p className="text-base text-gray-600 leading-relaxed max-w-lg" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                  At Kanvei, we don't just sell products; we curate lifestyles. From exquisite jewellery to premium stationery, every piece is chosen to elevate your everyday moments into something extraordinary.
+                  At Kanvei, we don&apos;t just sell products; we curate lifestyles. From exquisite jewellery to premium stationery, every piece is chosen to elevate your everyday moments into something extraordinary.
                 </p>
               </div>
 
@@ -279,19 +280,19 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div className="space-y-3 translate-y-8">
                   <div className="relative h-48 rounded-2xl overflow-hidden shadow-lg group">
-                    <img src="/2.jpg" alt="Collection 1" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <Image src="/2.jpg" alt="Collection 1" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-[#5A0117]/20 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
                   <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
-                    <img src="/3.jpg" alt="Collection 2" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <Image src="/3.jpg" alt="Collection 2" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
-                    <img src="/4.jpg" alt="Collection 3" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <Image src="/4.jpg" alt="Collection 3" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>
                   <div className="relative h-56 rounded-2xl overflow-hidden shadow-lg group">
-                    <img src="/lastimg.webp" alt="Collection 4" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <Image src="/lastimg.webp" alt="Collection 4" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#5A0117]/50 to-transparent"></div>
                     <div className="absolute bottom-4 left-4 text-white font-bold text-lg" style={{ fontFamily: "Sugar, serif" }}>
                       Est. 2024
