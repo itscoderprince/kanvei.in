@@ -5,8 +5,9 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import OTPVerification from "@/components/OTPVerification"
 import { useAuth } from "@/contexts/AuthContext"
-import { Mail, Lock, ArrowRight, Loader2, ShoppingBag, Eye, EyeOff } from "lucide-react"
+import { Mail, Lock, ArrowRight, Loader2, ShoppingBag, Eye, EyeOff, Sparkles, User, ArrowLeft } from "lucide-react"
 import toast from "react-hot-toast"
+import Image from "next/image"
 
 // Authentic Google Icon
 const GoogleIcon = ({ className }) => (
@@ -36,7 +37,7 @@ export default function LoginPage() {
     const { login, loginWithOTP, sendOTP, loading, isAuthenticated } = useAuth()
     const router = useRouter()
 
-    // Session protection - redirect if already logged in
+    // Session protection
     useEffect(() => {
         if (isAuthenticated) {
             router.replace('/')
@@ -45,10 +46,10 @@ export default function LoginPage() {
 
     if (isAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="min-h-screen flex items-center justify-center bg-[#FDF8F3]">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#5A0117]" size={40} />
-                    <div className="text-xl font-medium text-gray-700">Redirecting to home...</div>
+                    <div className="text-xl font-medium text-[#8C6141]" style={{ fontFamily: "Montserrat, sans-serif" }}>Securely redirecting...</div>
                 </div>
             </div>
         )
@@ -65,7 +66,6 @@ export default function LoginPage() {
             return
         }
         const result = await login(formData.email, formData.password)
-        console.log(result)
         if (result.success) {
             toast.success(result.message)
             router.push("/")
@@ -110,202 +110,199 @@ export default function LoginPage() {
         return result
     }
 
-    const handleGoogleLogin = async () => {
-        try {
-            await signIn("google", { callbackUrl: "/" })
-        } catch (error) {
-            toast.error("Google login failed")
-        }
-    }
-
-    const handleFacebookLogin = async () => {
-        try {
-            await signIn("facebook", { callbackUrl: "/" })
-        } catch (error) {
-            toast.error("Facebook login failed")
-        }
-    }
-
     return (
-        <div className="min-h-screen flex bg-white tracking-wide">
-            {/* Left Side - Brand Visuals */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-[#5A0117] text-white flex-col justify-between p-8 xl:p-12 overflow-hidden">
-                {/* Decorative Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <path d="M0 100 C 20 0 50 0 100 100 Z" fill="currentColor" />
-                    </svg>
-                </div>
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-[#8C6141] opacity-20 blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-[#8C6141] opacity-20 blur-3xl"></div>
+        <div className="min-h-screen flex bg-white font-sans">
+            {/* Left Side - Pure Premium Gradient */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#5A0117] via-[#4a0113] to-[#2d000b]">
+                {/* Abstract Geometric Shapes */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#8C6141] rounded-full mix-blend-overlay filter blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2 animate-pulse duration-[10s]" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#DBCCB7] rounded-full mix-blend-overlay filter blur-[80px] opacity-10 -translate-x-1/3 translate-y-1/3" />
 
-                {/* Content */}
-                <div className="relative z-10">
-                    <Link href="/" className="flex items-center gap-2 text-2xl font-bold" style={{ fontFamily: "Sugar, serif" }}>
-                        <ShoppingBag /> Kanvei
-                    </Link>
-                </div>
-
-                <div className="relative z-10 max-w-lg mb-8">
-                    <h2 className="text-3xl xl:text-4xl font-bold mb-4 leading-tight" style={{ fontFamily: "Sugar, serif" }}>
-                        Discover the elegance of modern fashion.
-                    </h2>
-                    <p className="text-base text-white/80 leading-relaxed font-light" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                        Join thousands of style enthusiasts who trust Kanvei for their daily fashion needs. Quality, style, and comfort in every thread.
-                    </p>
-                </div>
-
-                <div className="relative z-10 text-xs text-white/60 font-light" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                    © {new Date().getFullYear()} Kanvei. All rights reserved.
-                </div>
-            </div>
-
-            {/* Right Side - Login Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 bg-white relative">
-                <div className="w-full max-w-sm space-y-6">
-                    <div className="lg:hidden mb-6 text-center">
-                        <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold text-[#5A0117]" style={{ fontFamily: "Sugar, serif" }}>
-                            <ShoppingBag /> Kanvei
+                <div className="relative z-10 flex flex-col justify-between h-full p-12 xl:p-16">
+                    <div>
+                        <Link href="/" className="inline-flex items-center gap-3 text-white group">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10 group-hover:bg-white/20 transition-all">
+                                <ShoppingBag className="w-5 h-5 text-[#DBCCB7]" />
+                            </div>
+                            <span className="text-2xl font-bold tracking-tight" style={{ fontFamily: "Sugar, serif" }}>Kanvei</span>
                         </Link>
                     </div>
 
+                    <div className="space-y-6 max-w-lg">
+                        <h1 className="text-4xl xl:text-5xl font-bold text-white leading-[1.1]" style={{ fontFamily: "Sugar, serif" }}>
+                            Master the Art of <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DBCCB7] via-[#FDF8F3] to-[#DBCCB7]">Luxury Living</span>
+                        </h1>
+                        <p className="text-base text-white/70 leading-relaxed font-light max-w-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                            Sign in to access your curated wishlist, track exclusive orders, and receive personalized recommendations.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs font-medium text-white/40">
+                        <span>Privacy Policy</span>
+                        <div className="w-1 h-1 bg-white/20 rounded-full" />
+                        <span>Terms of Service</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Side - Compact & Clean Form */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center bg-white relative">
+                {/* Mobile Header - Integrated & Compact */}
+                <div className="lg:hidden w-full p-4 flex justify-center pb-0">
+                    <Link href="/" className="flex items-center gap-2 text-[#5A0117]">
+                        <ShoppingBag className="w-4 h-4" />
+                        <span className="font-bold text-lg tracking-tight" style={{ fontFamily: "Sugar, serif" }}>Kanvei</span>
+                    </Link>
+                </div>
+
+                <div className="w-full max-w-[360px] mx-auto px-6 sm:px-8 space-y-4 md:space-y-8">
+                    <div className="text-center space-y-1">
+                        <h2 className="text-xl md:text-3xl font-bold text-[#1a1a1a]" style={{ fontFamily: "Sugar, serif" }}>Welcome Back</h2>
+                        <p className="text-gray-400 text-[11px] md:text-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                            Enter your details to access your account.
+                        </p>
+                    </div>
+
                     {step === "otp" ? (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                            <OTPVerification
-                                email={formData.email}
-                                type="login"
-                                onVerify={handleOTPVerify}
-                                onResend={handleOTPResend}
-                                loading={loading}
-                            />
-                            <div className="mt-6 text-center">
+                        <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                            <div className="mb-3">
                                 <button
                                     onClick={() => setStep("form")}
-                                    className="text-xs font-semibold hover:text-[#5A0117] transition-colors text-gray-500"
-                                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                                    className="flex items-center justify-center w-full gap-1 text-[11px] font-medium text-gray-400 hover:text-[#5A0117] transition-colors mb-3"
                                 >
-                                    Back to login options
+                                    <ArrowLeft className="w-3 h-3" /> Back to Login
                                 </button>
+                                <OTPVerification
+                                    email={formData.email}
+                                    type="login"
+                                    onVerify={handleOTPVerify}
+                                    onResend={handleOTPResend}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     ) : (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="text-left mb-6">
-                                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Sugar, serif" }}>Welcome back</h1>
-                                <p className="text-sm text-gray-500" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                                    Please enter your details to sign in.
-                                </p>
-                            </div>
-
-                            {/* Method Toggle */}
-                            <div className="flex p-1 bg-gray-50 rounded-lg mb-6">
+                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {/* Compact Method Toggle */}
+                            <div className="bg-gray-50 p-1 rounded-lg flex relative">
+                                <div
+                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-md shadow-sm transition-all duration-300 ease-spring ${loginMethod === 'otp' ? 'translate-x-[calc(100%+4px)] left-1' : 'left-1'}`}
+                                />
                                 <button
                                     onClick={() => setLoginMethod("email")}
-                                    className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${loginMethod === "email" ? "bg-white text-[#5A0117] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                        }`}
+                                    className={`relative z-10 flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors duration-300 ${loginMethod === "email" ? "text-[#5A0117]" : "text-gray-400 hover:text-gray-600"}`}
                                 >
                                     Password
                                 </button>
                                 <button
                                     onClick={() => setLoginMethod("otp")}
-                                    className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${loginMethod === "otp" ? "bg-white text-[#5A0117] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                        }`}
+                                    className={`relative z-10 flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors duration-300 ${loginMethod === "otp" ? "text-[#5A0117]" : "text-gray-400 hover:text-gray-600"}`}
                                 >
-                                    One-Time Password
+                                    OTP Login
                                 </button>
                             </div>
 
-                            <form onSubmit={loginMethod === "email" ? handleEmailLogin : handleOTPLogin} className="space-y-4">
-
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                            placeholder="Enter your email"
-                                        />
-                                    </div>
-                                </div>
-
-                                {loginMethod === "email" && (
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <label className="block text-xs font-medium text-gray-700">Password</label>
-                                            <Link href="/forgot-password" className="text-xs font-medium text-[#8C6141] hover:text-[#5A0117] transition-colors">
-                                                Forgot password?
-                                            </Link>
-                                        </div>
-
+                            <form onSubmit={loginMethod === "email" ? handleEmailLogin : handleOTPLogin}>
+                                <div className="space-y-2.5">
+                                    <div className="space-y-1">
                                         <div className="relative group">
-                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Mail className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                            </div>
                                             <input
-                                                type={showPassword ? "text" : "password"}
-                                                name="password"
-                                                value={formData.password}
+                                                type="email"
+                                                name="email"
+                                                required
+                                                value={formData.email}
                                                 onChange={handleChange}
-                                                className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                                placeholder="••••••••"
+                                                className="block w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                placeholder="Email Address"
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                            >
-                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
                                         </div>
                                     </div>
-                                )}
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full flex items-center justify-center py-2.5 px-4 bg-[#5A0117] text-white text-sm font-semibold rounded-lg hover:bg-[#4a0113] focus:ring-2 focus:ring-[#5A0117]/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-[#5A0117]/10"
-                                >
-                                    {loading ? <Loader2 className="animate-spin" size={18} /> : (
-                                        <>
-                                            {loginMethod === "email" ? "Sign in" : "Send Login Code"}
-                                            <ArrowRight size={16} className="ml-2" />
-                                        </>
+                                    {loginMethod === "email" && (
+                                        <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <Lock className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                                </div>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    name="password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    className="block w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                    placeholder="Password"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                                >
+                                                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                                                </button>
+                                            </div>
+                                            <div className="flex justify-end pt-0.5">
+                                                <Link href="/forgot-password" className="text-[10px] font-bold text-[#8C6141] hover:text-[#5A0117] transition-colors">
+                                                    FORGOT?
+                                                </Link>
+                                            </div>
+                                        </div>
                                     )}
-                                </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full flex items-center justify-center py-2.5 px-6 border border-transparent rounded-lg shadow-md shadow-[#5A0117]/20 text-sm font-bold text-white bg-[#5A0117] hover:bg-[#3d0010] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A0117] transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed mt-1"
+                                    >
+                                        {loading ? (
+                                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                {loginMethod === "email" ? "Sign In" : "Get Code"}
+                                                <ArrowRight className="w-3.5 h-3.5" />
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
                             </form>
 
-                            <div className="relative my-6">
+                            <div className="relative text-center my-2">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-gray-100"></div>
                                 </div>
-                                <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
-                                    <span className="bg-white px-2 text-gray-400">Or continue with</span>
-                                </div>
+                                <span className="relative bg-white px-2 text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Or</span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={handleGoogleLogin} className="flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <GoogleIcon className="w-5 h-5" />
-                                    <span className="ml-2 text-xs font-medium text-gray-600">Google</span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                    <GoogleIcon className="h-3.5 w-3.5 transition-all" />
+                                    <span className="text-[11px] font-semibold text-gray-600">Google</span>
                                 </button>
-                                <button onClick={handleFacebookLogin} className="flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <FacebookIcon className="w-5 h-5" />
-                                    <span className="ml-2 text-xs font-medium text-gray-600">Facebook</span>
+                                <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                    <FacebookIcon className="h-3.5 w-3.5 transition-all" />
+                                    <span className="text-[11px] font-semibold text-gray-600">Facebook</span>
                                 </button>
                             </div>
 
-                            <p className="mt-6 text-center text-xs text-gray-500">
-                                Don&apos;t have an account?{' '}
-                                <Link href="/register" className="font-semibold text-[#5A0117] hover:underline">
-                                    Sign up for free
+                            <p className="text-center text-[11px] text-gray-500 pt-1">
+                                Not a member?{' '}
+                                <Link href="/register" className="font-bold text-[#5A0117] hover:underline transition-all">
+                                    Create Account
                                 </Link>
                             </p>
                         </div>
                     )}
+
+                    {/* Mobile Footer */}
+                    <div className="lg:hidden text-center text-[10px] text-gray-300 pb-2">
+                        © 2024 Kanvei
+                    </div>
                 </div>
             </div>
         </div>
     )
 }
+

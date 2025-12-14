@@ -29,7 +29,7 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: "clothing",
-      image: "/1.jpg",
+      image: "/m1.png",
       link: "/categories/clothing",
       title: "Fashion & Clothing",
       subtitle: "Discover Latest Trends",
