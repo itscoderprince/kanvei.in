@@ -140,7 +140,7 @@ export default function HomePage() {
               <span
                 className="text-[10px] md:text-xs font-semibold text-gray-600 group-hover:text-[#5A0117] uppercase tracking-wider text-center leading-tight transition-colors duration-300"
               >
-                {isAuthenticated ? "My Orders" : "Login"}
+                {isAuthenticated ? "Orders" : "Login"}
               </span>
             </Link>
           </div>
