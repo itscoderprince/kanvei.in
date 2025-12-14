@@ -110,6 +110,22 @@ export default function LoginPage() {
         return result
     }
 
+    const handleGoogleLogin = async () => {
+        try {
+            await signIn("google", { callbackUrl: "/" })
+        } catch (error) {
+            toast.error("Google login failed")
+        }
+    }
+
+    const handleFacebookLogin = async () => {
+        try {
+            await signIn("facebook", { callbackUrl: "/" })
+        } catch (error) {
+            toast.error("Facebook login failed")
+        }
+    }
+
     return (
         <div className="min-h-screen flex bg-white font-sans">
             {/* Left Side - Pure Premium Gradient */}
@@ -277,11 +293,11 @@ export default function LoginPage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
-                                <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                <button onClick={handleGoogleLogin} className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
                                     <GoogleIcon className="h-3.5 w-3.5 transition-all" />
                                     <span className="text-[11px] font-semibold text-gray-600">Google</span>
                                 </button>
-                                <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                <button onClick={handleFacebookLogin} className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
                                     <FacebookIcon className="h-3.5 w-3.5 transition-all" />
                                     <span className="text-[11px] font-semibold text-gray-600">Facebook</span>
                                 </button>
