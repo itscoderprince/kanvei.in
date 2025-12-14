@@ -56,11 +56,7 @@ export default function HomePage() {
       {/* Categories Section - Refined & Compact */}
       <section className="w-full py-6 md:py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#5A0117]" style={{ fontFamily: "Sugar, serif" }}>
-              Shop by Category
-            </h2>
-            <div className="w-16 h-1 bg-[#8C6141] mx-auto mt-2 rounded-full"></div>
+          <div className="text-center mb-8 hidden">
           </div>
 
           {/* Responsive Grid */}
