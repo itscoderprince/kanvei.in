@@ -66,7 +66,7 @@ export default function HeroCarousel() {
   ]
 
   return (
-    <div className="relative w-full h-[240px] md:h-[54vh] group overflow-hidden bg-black">
+    <div className="relative w-full h-[240px] md:h-[60vh] group overflow-hidden bg-black">
       <Swiper
         spaceBetween={0}
         centeredSlides={true}
