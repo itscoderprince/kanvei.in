@@ -66,7 +66,7 @@ export default function HeroCarousel() {
   ]
 
   return (
-    <div className="relative w-full h-[500px] md:h-[550px] lg:h-[650px] group overflow-hidden bg-black">
+    <div className="relative w-full h-[320px] md:h-[54vh] group overflow-hidden bg-black">
       <Swiper
         spaceBetween={0}
         centeredSlides={true}
@@ -104,60 +104,7 @@ export default function HeroCarousel() {
             <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} mix-blend-multiply opacity-70`} />
             <div className="absolute inset-0 bg-black/40" />
 
-            {/* 3. Content Layout */}
-            <div className="absolute inset-0 flex items-end px-6 sm:px-12 md:px-20 pb-16 md:pb-20">
-              <div className="max-w-3xl w-full">
 
-                {/* Glassmorphism Card */}
-                <div className="relative p-6 md:p-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-2xl">
-
-                  {/* Decorative accent line */}
-                  <div className="absolute top-0 left-0 w-1 h-full bg-white/40" />
-
-                  <div className="space-y-6" data-swiper-parallax="-300">
-                    {/* Subtitle */}
-                    <div className="flex items-center gap-3">
-                      <span className="h-[1px] w-8 bg-[#DBCCB7]" />
-                      <p
-                        className="text-[#DBCCB7] uppercase tracking-[0.3em] text-xs sm:text-sm font-bold"
-                        style={{ fontFamily: 'Montserrat, sans-serif' }}
-                      >
-                        {slide.subtitle}
-                      </p>
-                    </div>
-
-                    {/* Title */}
-                    <h2
-                      className="text-white text-4xl sm:text-5xl md:text-7xl font-bold leading-[0.9] tracking-tighter"
-                      style={{ fontFamily: 'Sugar, serif' }}
-                    >
-                      {slide.title}
-                    </h2>
-
-                    {/* Description */}
-                    <p
-                      className="text-white/80 text-base md:text-xl font-light leading-relaxed max-w-xl"
-                      style={{ fontFamily: 'Montserrat, sans-serif' }}
-                      data-swiper-parallax="-200"
-                    >
-                      {slide.description}
-                    </p>
-
-                    {/* CTA Button */}
-                    <div className="pt-4" data-swiper-parallax="-100">
-                      <Link
-                        href={slide.link}
-                        className="group/btn relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-none overflow-hidden transition-all hover:bg-[#5A0117] hover:text-white"
-                        style={{ fontFamily: 'Montserrat, sans-serif' }}
-                      >
-                        <span className="relative z-10 font-bold uppercase tracking-wider text-sm">Shop Now</span>
-                        <ArrowRight className="w-4 h-4 relative z-10 transition-transform group-hover/btn:translate-x-1" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </SwiperSlide>
         ))}
 
