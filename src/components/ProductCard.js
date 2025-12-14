@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useCart } from "../contexts/CartContext"
 import { useWishlist } from "../contexts/WishlistContext"
 import { useRouter } from "next/navigation"
-import { ShoppingBag, Heart, Loader2 } from "lucide-react"
+import { ShoppingBag, Heart, Loader2, Check } from "lucide-react"
 import { toast } from "react-hot-toast"
 
 export default function ProductCard({ product }) {
@@ -13,6 +13,7 @@ export default function ProductCard({ product }) {
   const { toggleWishlist, isInWishlist, isLoggedIn: wishlistLoggedIn } = useWishlist()
   const router = useRouter()
   const [isAdding, setIsAdding] = useState(false)
+  const [added, setAdded] = useState(false)
 
   const handleAddToCart = async (e) => {
     e.preventDefault()
@@ -27,14 +28,17 @@ export default function ProductCard({ product }) {
     if (product.stock <= 0) return
 
     setIsAdding(true)
-    const toastId = toast.loading("Adding to cart...")
+    // const toastId = toast.loading("Adding to cart...") 
+    // Commented out toast to rely on button feedback for cleaner UX
 
     try {
       await addToCart(product, 1)
-      toast.success("Added to cart!", { id: toastId })
+      toast.success("Added to cart!")
+      setAdded(true)
+      setTimeout(() => setAdded(false), 2000)
     } catch (error) {
       console.error('Error adding to cart:', error)
-      toast.error("Failed to add to cart", { id: toastId })
+      toast.error("Failed to add to cart")
     } finally {
       setIsAdding(false)
     }
@@ -64,71 +68,134 @@ export default function ProductCard({ product }) {
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
     : 0
 
-  return (
-    <Link href={`/products/${product.slug || product._id}`} className="group block h-full">
-      <div className="relative h-full flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+  // Logic for secondary image
+  const primaryImage = product.images?.[0] || "/placeholder.svg?height=400&width=300&query=product"
+  const secondaryImage = product.images?.[1] || primaryImage
+  const [imgLoaded, setImgLoaded] = useState(false)
 
-        {/* Image Container */}
-        <div className="relative aspect-[6/7] w-full bg-gray-100">
+  return (
+    <Link href={`/products/${product.slug || product._id}`} className="group block h-full select-none cursor-pointer">
+      <div className="relative h-full flex flex-col">
+
+        {/* Image Container - Ultra Clean with Smooth Load */}
+        <div className={`relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-[#FDF8F3] shadow-sm transition-shadow duration-300 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${!imgLoaded ? 'animate-pulse' : ''}`}>
+
+          {/* Primary Image */}
           <Image
-            src={product.images?.[0] || "/placeholder.svg?height=400&width=300&query=product"}
+            src={primaryImage}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+            className={`object-cover transition-all duration-700 ease-in-out ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${secondaryImage !== primaryImage ? "group-hover:opacity-0" : "group-hover:scale-110"}`}
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 16vw, 16vw"
+            onLoad={() => setImgLoaded(true)}
           />
 
-          {/* Discount Badge */}
-          {discount > 0 && (
-            <div className="absolute top-2 left-2 bg-[#5A0117] text-white text-[10px] font-bold px-2 py-1 rounded-sm tracking-wide shadow-sm z-10">
-              -{discount}%
-            </div>
+          {/* Secondary Image (Swap on Hover) */}
+          {secondaryImage !== primaryImage && (
+            <Image
+              src={secondaryImage}
+              alt={`${product.name} alternate`}
+              fill
+              className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-in-out group-hover:scale-110"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 16vw, 16vw"
+            />
           )}
 
-          {/* Wishlist Button */}
+          {/* Overlay Gradient on Hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#5A0117]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* Badges Container - Sticky Left */}
+          <div className="absolute top-0 left-0 flex flex-col gap-0 z-10">
+            {/* Discount Badge */}
+            {discount > 0 && (
+              <div className="bg-[#5A0117] text-white text-[10px] font-bold px-3 py-1.5 rounded-br-xl shadow-sm z-20">
+                -{discount}%
+              </div>
+            )}
+            {/* Low Stock Badge */}
+            {product.stock > 0 && product.stock < 10 && (
+              <div className="bg-[#DBCCB7]/90 backdrop-blur-sm text-[#5A0117] text-[9px] font-bold px-3 py-1 rounded-br-lg shadow-sm uppercase tracking-wider mt-0.5">
+                Low Stock
+              </div>
+            )}
+            {/* Out of Stock Badge */}
+            {product.stock <= 0 && (
+              <div className="bg-gray-900 text-white text-[9px] font-bold px-3 py-1 rounded-br-lg shadow-sm uppercase tracking-wider">
+                Sold Out
+              </div>
+            )}
+          </div>
+
+          {/* Wishlist Button - Floating Glass */}
           <button
             onClick={handleWishlistToggle}
-            className="absolute top-2 right-2 p-1.5 md:p-2 rounded-full bg-white/90 backdrop-blur-sm text-gray-900 transition-all duration-300 hover:bg-[#5A0117] hover:text-white shadow-sm z-10"
+            className="absolute top-2 right-2 p-2.5 rounded-full bg-white/70 backdrop-blur-md text-gray-900 transition-all duration-300 hover:bg-[#5A0117] hover:text-white opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 z-20 hover:scale-110 active:scale-90 border border-white/20 shadow-sm"
           >
             <Heart
-              className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isInWishlist(product._id) ? "fill-[#5A0117] text-[#5A0117] hover:text-white hover:fill-white" : "fill-none"}`}
+              className={`w-4 h-4 transition-colors ${isInWishlist(product._id) ? "fill-[#5A0117] text-[#5A0117] group-hover:text-white group-hover:fill-white" : "fill-none"}`}
             />
+          </button>
+
+          {/* Quick Add Button - Appears on Hover (Desktop) */}
+          <button
+            onClick={handleAddToCart}
+            disabled={product.stock <= 0 || isAdding}
+            className={`hidden md:flex items-center justify-center absolute bottom-4 right-4 w-11 h-11 rounded-full bg-white text-[#5A0117] shadow-[0_4px_20px_rgb(0,0,0,0.15)] translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) z-20 hover:bg-[#5A0117] hover:text-white hover:scale-110 active:scale-95 ${added ? '!bg-green-600 !text-white' : ''}`}
+            title="Add to Cart"
+          >
+            {isAdding ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : added ? (
+              <Check className="w-5 h-5" />
+            ) : (
+              <ShoppingBag size={20} strokeWidth={1.5} />
+            )}
           </button>
         </div>
 
-        {/* Product Info */}
-        <div className="flex-1 flex flex-col p-2">
+        {/* Product Info - Minimalist & Detailed */}
+        <div className="mt-3.5 space-y-1.5 px-1">
+          {/* Star Rating Placeholder (Visual Only) */}
+          <div className="flex items-center gap-0.5 opacity-60">
+            {[1, 2, 3, 4, 5].map(star => (
+              <svg key={star} className={`w-3 h-3 ${star <= 4 ? 'fill-[#8C6141] text-[#8C6141]' : 'fill-gray-200 text-gray-200'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            ))}
+            <span className="text-[10px] ml-1 text-gray-400 font-medium">(4.0)</span>
+          </div>
+
           <h3
-            className="text-xs md:text-sm font-medium text-gray-800 line-clamp-2 min-h-[1.8em] group-hover:text-[#5A0117] transition-colors mb-2"
+            className="text-sm font-semibold text-gray-900 line-clamp-1 group-hover:text-[#5A0117] transition-colors"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {product.name}
           </h3>
 
-          <div className="mt-auto flex items-end justify-between gap-2">
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-[#5A0117]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-[#5A0117]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
               {product.mrp > product.price && (
-                <span className="text-xs text-gray-400 line-through">
+                <span className="text-xs text-gray-400 line-through decoration-red-500/50">
                   ₹{product.mrp.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
 
+            {/* Mobile Add to Cart - Glassmorphic Pill */}
             <button
               onClick={handleAddToCart}
               disabled={product.stock <= 0 || isAdding}
-              className={`p-2 rounded-full transition-colors flex-shrink-0 ${product.stock <= 0
-                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                : "bg-[#5A0117] text-white hover:bg-[#5A0117]/90 shadow-sm"}`}
-              title={product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
+              className={`md:hidden p-2.5 rounded-full transition-all duration-300 active:scale-90 shadow-sm ${added ? 'bg-green-600 text-white' : 'bg-[#FDF8F3] text-[#5A0117] border border-[#DBCCB7]/30 hover:bg-[#5A0117] hover:text-white'}`}
             >
               {isAdding ? (
-                <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : added ? (
+                <Check className="w-4 h-4" />
               ) : (
-                <ShoppingBag size={18} />
+                <ShoppingBag size={18} strokeWidth={2} />
               )}
             </button>
           </div>
