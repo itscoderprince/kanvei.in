@@ -15,11 +15,15 @@ import {
   Sparkles,
   Globe,
   ShieldCheck,
-  Truck
+  Truck,
+  User,
+  LogIn
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 import Image from "next/image"
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -64,26 +68,26 @@ export default function HomePage() {
           </div>
 
           {/* Responsive Grid */}
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-4 md:gap-8">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
             {categoriesStatic.map((category) => {
               const IconComponent = category.icon
               return (
                 <Link
                   key={category._id}
                   href={category.href}
-                  className="group flex flex-col items-center gap-3"
+                  className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   <div
-                    className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-[#FDF8F3] border border-[#DBCCB7]/30 shadow-sm group-hover:shadow-md group-hover:bg-[#5A0117] group-hover:border-[#5A0117] transition-all duration-300"
+                    className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
                   >
                     <IconComponent
-                      className="w-6 h-6 md:w-7 md:h-7 text-[#5A0117] group-hover:text-white transition-colors duration-300"
-                      strokeWidth={1.5}
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                      strokeWidth={1.2}
                     />
                   </div>
                   <span
-                    className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-[#5A0117] transition-colors"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    className="text-[10px] md:text-xs font-semibold text-gray-600 group-hover:text-[#5A0117] uppercase tracking-wider text-center leading-tight transition-colors duration-300"
                   >
                     {category.name}
                   </span>
@@ -94,21 +98,49 @@ export default function HomePage() {
             {/* View All */}
             <Link
               href="/categories"
-              className="group flex flex-col items-center gap-3"
+              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               <div
-                className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-[#FDF8F3] border border-[#DBCCB7]/30 shadow-sm group-hover:shadow-md group-hover:bg-[#5A0117] group-hover:border-[#5A0117] transition-all duration-300"
+                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
               >
                 <LayoutGrid
-                  className="w-6 h-6 md:w-7 md:h-7 text-[#5A0117] group-hover:text-white transition-colors duration-300"
-                  strokeWidth={1.5}
+                  className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                  strokeWidth={1.2}
                 />
               </div>
               <span
-                className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-[#5A0117] transition-colors"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
+                className="text-[10px] md:text-xs font-semibold text-gray-600 group-hover:text-[#5A0117] uppercase tracking-wider text-center leading-tight transition-colors duration-300"
               >
                 View All
+              </span>
+            </Link>
+
+            {/* Auth Dependent Button */}
+            <Link
+              href={isAuthenticated ? "/orders" : "/login"}
+              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              <div
+                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
+              >
+                {isAuthenticated ? (
+                  <User
+                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                    strokeWidth={1.2}
+                  />
+                ) : (
+                  <LogIn
+                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                    strokeWidth={1.2}
+                  />
+                )}
+              </div>
+              <span
+                className="text-[10px] md:text-xs font-semibold text-gray-600 group-hover:text-[#5A0117] uppercase tracking-wider text-center leading-tight transition-colors duration-300"
+              >
+                {isAuthenticated ? "My Orders" : "Login"}
               </span>
             </Link>
           </div>
