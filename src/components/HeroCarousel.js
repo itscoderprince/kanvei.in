@@ -29,39 +29,21 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: "clothing",
-      image: "/m1.png",
-      link: "/categories/clothing",
-      title: "Fashion & Clothing",
-      subtitle: "Discover Latest Trends",
-      color: "from-[#5A0117]/90 to-[#8C6141]/80",
-      description: "Elevate your style with our premium collection of contemporary fashion."
+      desktopImage: "/2.jpg",
+      mobileImage: "/m4.png",
+      alt: "Fashion & Clothing"
     },
     {
       id: "stationery",
-      image: "/m2.png",
-      link: "/categories/stationery",
-      title: "Premium Stationery",
-      subtitle: "Writing Essentials",
-      color: "from-[#8C6141]/90 to-[#DBCCB7]/80",
-      description: "Craft your thoughts with our exquisite range of quality stationery."
+      desktopImage: "/3.jpg",
+      mobileImage: "/m5.png",
+      alt: "Premium Stationery"
     },
     {
       id: "jewellery",
-      image: "/m3.png",
-      link: "/categories/jewellery",
-      title: "Elegant Jewellery",
-      subtitle: "Timeless Pieces",
-      color: "from-[#AFABAA]/90 to-[#5A0117]/80",
-      description: "Adorn yourself with handcrafted pieces that tell a unique story."
-    },
-    {
-      id: "cosmetics",
-      image: "/4.jpg",
-      link: "/categories/cosmetics",
-      title: "Beauty & Cosmetics",
-      subtitle: "Enhance Your Beauty",
-      color: "from-[#5A0117]/80 to-[#E4A0B7]/80",
-      description: "Discover the secret to radiant skin with our tailored beauty solutions."
+      desktopImage: "/4.jpg",
+      mobileImage: "/m6.png",
+      alt: "Elegant Jewellery"
     },
   ]
 
@@ -93,14 +75,28 @@ export default function HeroCarousel() {
 
             {/* 1. Parallax Background Image using Next.js Image */}
             <div className="absolute inset-0 w-full h-full" data-swiper-parallax="-20%">
-              <Image
-                src={slide.image}
-                alt={slide.title}
-                fill
-                className="object-cover object-center"
-                priority
-                quality={90}
-              />
+              {/* Desktop Image */}
+              <div className="hidden md:block w-full h-full relative">
+                <Image
+                  src={slide.desktopImage}
+                  alt={slide.alt}
+                  fill
+                  className="object-cover object-center"
+                  priority
+                  quality={90}
+                />
+              </div>
+              {/* Mobile Image */}
+              <div className="block md:hidden w-full h-full relative">
+                <Image
+                  src={slide.mobileImage}
+                  alt={slide.alt}
+                  fill
+                  className="object-cover object-center"
+                  priority
+                  quality={90}
+                />
+              </div>
             </div>
 
             {/* 2. Advanced Overlay - Removed as per request */}
