@@ -77,6 +77,9 @@ export default function HeroCarousel() {
           delay: 6000,
           disableOnInteraction: false,
         }}
+        pagination={{
+          clickable: true,
+        }}
         navigation={{
           prevEl: '.custom-prev',
           nextEl: '.custom-next',
@@ -108,8 +111,8 @@ export default function HeroCarousel() {
           </SwiperSlide>
         ))}
 
-        {/* 4. Professional Navigation UI */}
-        <div className="absolute bottom-10 right-10 z-20 flex items-center gap-6">
+        {/* 4. Professional Navigation UI - Only Visible on Desktop */}
+        <div className="hidden md:flex absolute bottom-10 right-10 z-20 items-center gap-6">
 
           {/* Navigation Arrows */}
           <div className="flex gap-2">
@@ -141,6 +144,32 @@ export default function HeroCarousel() {
             <span ref={progressContent} className="absolute text-[10px] font-bold text-white"></span>
           </div>
         </div>
+
+        {/* Mobile Pagination (Dots) - Hidden on desktop via CSS or custom styles if needed, but Swiper pagination is usually global. We can style it to be hidden on md screens via global CSS or inline styles if Swiper allows. 
+            Swiper's default pagination is at the bottom. We can use Tailwind to hide it on md screens by targeting the class.
+            Since we can't easily modify global CSS for Swiper classes from here, we will render it but use CSS in a style tag or classNames if possible.
+            Swiper React allows pagination prop to take an object. We can pass a clickable true and maybe a renderBullet or just rely on default and hide via CSS injection or specific class on the container. 
+        */}
+        <style jsx global>{`
+          .swiper-pagination-bullet {
+            width: 24px;
+            height: 3px;
+            background: white;
+            opacity: 0.5;
+            border-radius: 2px;
+            transition: all 0.3s;
+          }
+          .swiper-pagination-bullet-active {
+            width: 32px;
+            background: white;
+            opacity: 1;
+          }
+          @media (min-width: 768px) {
+            .swiper-pagination {
+              display: none;
+            }
+          }
+        `}</style>
 
       </Swiper>
     </div>
