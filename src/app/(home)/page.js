@@ -69,20 +69,20 @@ export default function HomePage() {
 
           {/* Responsive Grid */}
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-            {categoriesStatic.map((category) => {
+            {categoriesStatic.map((category, idx) => {
               const IconComponent = category.icon
               return (
                 <Link
                   key={category._id}
                   href={category.href}
-                  className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                  className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-1000 fill-mode-backwards"
+                  style={{ fontFamily: "Montserrat, sans-serif", animationDelay: `${idx * 100}ms` }}
                 >
                   <div
-                    className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
+                    className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#DBCCB7] group-hover:-translate-y-1 transition-all duration-500 ease-out"
                   >
                     <IconComponent
-                      className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-105 transition-all duration-300 ease-in-out"
                       strokeWidth={1.2}
                     />
                   </div>
@@ -98,14 +98,14 @@ export default function HomePage() {
             {/* View All */}
             <Link
               href="/categories"
-              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-1000 fill-mode-backwards"
+              style={{ fontFamily: "Montserrat, sans-serif", animationDelay: "600ms" }}
             >
               <div
-                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
+                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#DBCCB7] group-hover:-translate-y-1 transition-all duration-500 ease-out"
               >
                 <LayoutGrid
-                  className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                  className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-105 transition-all duration-300 ease-in-out"
                   strokeWidth={1.2}
                 />
               </div>
@@ -119,20 +119,20 @@ export default function HomePage() {
             {/* Auth Dependent Button */}
             <Link
               href={isAuthenticated ? "/orders" : "/login"}
-              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              className="group flex flex-col items-center gap-3 md:gap-4 p-2 rounded-xl transition-all duration-300 hover:bg-gray-50/50 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-1000 fill-mode-backwards"
+              style={{ fontFamily: "Montserrat, sans-serif", animationDelay: "700ms" }}
             >
               <div
-                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#5A0117] group-hover:-translate-y-1 transition-all duration-500 ease-out"
+                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white border border-[#5A0117]/10 shadow-[0_2px_10px_rgb(0,0,0,0.03)] group-hover:shadow-[0_10px_25px_rgba(90,1,23,0.15)] group-hover:bg-[#5A0117] group-hover:border-[#DBCCB7] group-hover:-translate-y-1 transition-all duration-500 ease-out"
               >
                 {isAuthenticated ? (
                   <User
-                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-105 transition-all duration-300 ease-in-out"
                     strokeWidth={1.2}
                   />
                 ) : (
                   <LogIn
-                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
+                    className="w-6 h-6 md:w-8 md:h-8 text-[#5A0117] group-hover:text-white group-hover:scale-105 transition-all duration-300 ease-in-out"
                     strokeWidth={1.2}
                   />
                 )}
