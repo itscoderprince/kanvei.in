@@ -29,7 +29,7 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: "clothing",
-      image: "/cloth2.webp",
+      image: "/1.jpg",
       link: "/categories/clothing",
       title: "Fashion & Clothing",
       subtitle: "Discover Latest Trends",
@@ -103,9 +103,9 @@ export default function HeroCarousel() {
               />
             </div>
 
-            {/* 2. Advanced Overlay */}
-            <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} mix-blend-multiply opacity-70`} />
-            <div className="absolute inset-0 bg-black/40" />
+            {/* 2. Advanced Overlay - Removed as per request */}
+            {/* <div className={`absolute inset-0 bg-gradient-to-r ${slide.color} mix-blend-multiply opacity-70`} />
+            <div className="absolute inset-0 bg-black/40" /> */}
 
 
           </SwiperSlide>
