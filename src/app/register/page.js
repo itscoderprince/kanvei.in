@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import OTPVerification from "@/components/OTPVerification"
 import { useAuth } from "@/contexts/AuthContext"
-import { User, Mail, Lock, CheckCircle, ArrowRight, Loader2, ShoppingBag, Eye, EyeOff } from "lucide-react"
+import { User, Mail, Lock, CheckCircle, ArrowRight, ArrowLeft, Loader2, ShoppingBag, Eye, EyeOff } from "lucide-react"
 import toast from "react-hot-toast"
 
 // Authentic Google Icon
