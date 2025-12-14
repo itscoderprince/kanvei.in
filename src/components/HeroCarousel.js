@@ -38,7 +38,7 @@ export default function HeroCarousel() {
     },
     {
       id: "stationery",
-      image: "/sationary.jpg",
+      image: "/2.jpg",
       link: "/categories/stationery",
       title: "Premium Stationery",
       subtitle: "Writing Essentials",
