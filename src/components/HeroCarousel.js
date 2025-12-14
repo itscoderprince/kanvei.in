@@ -30,7 +30,7 @@ export default function HeroCarousel() {
     {
       id: "clothing",
       desktopImage: "/2.jpg",
-      mobileImage: "/m4.png",
+      mobileImage: "/m6.png",
       alt: "Fashion & Clothing"
     },
     {
@@ -42,7 +42,7 @@ export default function HeroCarousel() {
     {
       id: "jewellery",
       desktopImage: "/4.jpg",
-      mobileImage: "/m6.png",
+      mobileImage: "/m4.png",
       alt: "Elegant Jewellery"
     },
   ]
