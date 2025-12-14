@@ -47,7 +47,7 @@ export default function HeroCarousel() {
     },
     {
       id: "jewellery",
-      image: "/3.jpg",
+      image: "/m3.png",
       link: "/categories/jewellery",
       title: "Elegant Jewellery",
       subtitle: "Timeless Pieces",
