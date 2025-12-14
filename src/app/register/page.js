@@ -144,211 +144,229 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen flex bg-white tracking-wide">
-            {/* Left Side - Brand Visuals */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-[#5A0117] text-white flex-col justify-between p-8 xl:p-12 overflow-hidden">
-                {/* Decorative Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <path d="M100 0 C 80 100 50 100 0 0 Z" fill="currentColor" />
-                    </svg>
-                </div>
-                <div className="absolute top-0 left-0 -ml-20 -mt-20 w-80 h-80 rounded-full bg-[#8C6141] opacity-20 blur-3xl"></div>
-                <div className="absolute bottom-0 right-0 -mr-20 -mb-20 w-80 h-80 rounded-full bg-[#8C6141] opacity-20 blur-3xl"></div>
+            {/* Left Side - Pure Premium Gradient */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#5A0117] via-[#4a0113] to-[#2d000b]">
+                {/* Abstract Geometric Shapes */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#8C6141] rounded-full mix-blend-overlay filter blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2 animate-pulse duration-[10s]" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#DBCCB7] rounded-full mix-blend-overlay filter blur-[80px] opacity-10 -translate-x-1/3 translate-y-1/3" />
 
-                {/* Content */}
-                <div className="relative z-10">
-                    <Link href="/" className="flex items-center gap-2 text-2xl font-bold" style={{ fontFamily: "Sugar, serif" }}>
-                        <ShoppingBag /> Kanvei
-                    </Link>
-                </div>
-
-                <div className="relative z-10 max-w-lg mb-8">
-                    <h2 className="text-3xl xl:text-4xl font-bold mb-4 leading-tight" style={{ fontFamily: "Sugar, serif" }}>
-                        Create your fashion legacy with us.
-                    </h2>
-                    <p className="text-base text-white/80 leading-relaxed font-light" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                        Start your journey today. Get exclusive access to the latest trends, personalized recommendations, and seamless shopping.
-                    </p>
-                </div>
-
-                <div className="relative z-10 text-xs text-white/60 font-light" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                    Already a member? <Link href="/login" className="text-white underline font-medium">Sign in here</Link>
-                </div>
-            </div>
-
-            {/* Right Side - Register Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 bg-white relative">
-                <div className="w-full max-w-sm space-y-6">
-                    <div className="lg:hidden mb-6 text-center">
-                        <Link href="/" className="inline-flex items-center gap-2 text-2xl font-bold text-[#5A0117]" style={{ fontFamily: "Sugar, serif" }}>
-                            <ShoppingBag /> Kanvei
+                <div className="relative z-10 flex flex-col justify-between h-full p-12 xl:p-16">
+                    <div>
+                        <Link href="/" className="inline-flex items-center gap-3 text-white group">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10 group-hover:bg-white/20 transition-all">
+                                <ShoppingBag className="w-5 h-5 text-[#DBCCB7]" />
+                            </div>
+                            <span className="text-2xl font-bold tracking-tight" style={{ fontFamily: "Sugar, serif" }}>Kanvei</span>
                         </Link>
                     </div>
 
+                    <div className="space-y-6 max-w-lg">
+                        <h1 className="text-4xl xl:text-5xl font-bold text-white leading-[1.1]" style={{ fontFamily: "Sugar, serif" }}>
+                            Create Your <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DBCCB7] via-[#FDF8F3] to-[#DBCCB7]">Fashion Legacy</span>
+                        </h1>
+                        <p className="text-base text-white/70 leading-relaxed font-light max-w-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                            Start your journey today. Get exclusive access to latest trends and personalized recommendations.
+                        </p>
+                    </div>
+
+                    <div className="relative z-10 text-xs text-white/60 font-light" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                        Already a member? <Link href="/login" className="text-white underline font-medium hover:text-[#DBCCB7] transition-colors">Sign in here</Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Side - Compact & Clean Form */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center bg-white relative">
+                {/* Mobile Header - Integrated & Compact */}
+                <div className="lg:hidden w-full p-4 flex justify-center pb-0">
+                    <Link href="/" className="flex items-center gap-2 text-[#5A0117]">
+                        <ShoppingBag className="w-4 h-4" />
+                        <span className="font-bold text-lg tracking-tight" style={{ fontFamily: "Sugar, serif" }}>Kanvei</span>
+                    </Link>
+                </div>
+
+                <div className="w-full max-w-[360px] mx-auto px-6 sm:px-8 space-y-4 md:space-y-8">
+                    <div className="text-center space-y-1">
+                        <h2 className="text-xl md:text-3xl font-bold text-[#1a1a1a]" style={{ fontFamily: "Sugar, serif" }}>Create Account</h2>
+                        <p className="text-gray-400 text-[11px] md:text-sm" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                            Join us to start your shopping journey
+                        </p>
+                    </div>
+
                     {step === "otp" ? (
-                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                            <OTPVerification
-                                email={formData.email}
-                                type="register"
-                                onVerify={handleOTPVerify}
-                                onResend={handleOTPResend}
-                                loading={loading}
-                            />
-                            <div className="mt-6 text-center">
+                        <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                            <div className="mb-3">
                                 <button
                                     onClick={() => setStep("form")}
-                                    className="text-xs font-semibold hover:text-[#5A0117] transition-colors text-gray-500"
-                                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                                    className="flex items-center justify-center w-full gap-1 text-[11px] font-medium text-gray-400 hover:text-[#5A0117] transition-colors mb-3"
                                 >
-                                    Back to form
+                                    <ArrowLeft className="w-3 h-3" /> Back to form
                                 </button>
+                                <OTPVerification
+                                    email={formData.email}
+                                    type="register"
+                                    onVerify={handleOTPVerify}
+                                    onResend={handleOTPResend}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     ) : (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="text-left mb-6">
-                                <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Sugar, serif" }}>Create an account</h1>
-                                <p className="text-sm text-gray-500" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                                    Join us to start your shopping journey
-                                </p>
-                            </div>
-
-                            {/* Method Toggle */}
-                            <div className="flex p-1 bg-gray-50 rounded-lg mb-6">
+                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {/* Compact Method Toggle */}
+                            <div className="bg-gray-50 p-1 rounded-lg flex relative">
+                                <div
+                                    className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-md shadow-sm transition-all duration-300 ease-spring ${registrationMethod === 'otp' ? 'translate-x-[calc(100%+4px)] left-1' : 'left-1'}`}
+                                />
                                 <button
                                     onClick={() => setRegistrationMethod("email")}
-                                    className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${registrationMethod === "email" ? "bg-white text-[#5A0117] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                        }`}
+                                    className={`relative z-10 flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors duration-300 ${registrationMethod === "email" ? "text-[#5A0117]" : "text-gray-400 hover:text-gray-600"}`}
                                 >
                                     Standard
                                 </button>
                                 <button
                                     onClick={() => setRegistrationMethod("otp")}
-                                    className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${registrationMethod === "otp" ? "bg-white text-[#5A0117] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                        }`}
+                                    className={`relative z-10 flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors duration-300 ${registrationMethod === "otp" ? "text-[#5A0117]" : "text-gray-400 hover:text-gray-600"}`}
                                 >
                                     Via OTP
                                 </button>
                             </div>
 
-                            <form onSubmit={registrationMethod === "email" ? handleEmailRegister : handleOTPRegister} className="space-y-4">
-
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
-                                    <div className="relative group">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                            placeholder="John Doe"
-                                        />
+                            <form onSubmit={registrationMethod === "email" ? handleEmailRegister : handleOTPRegister}>
+                                <div className="space-y-2.5">
+                                    <div className="space-y-1">
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <User className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                required
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                className="block w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                placeholder="Full Name"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                            placeholder="john@example.com"
-                                        />
+                                    <div className="space-y-1">
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Mail className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                            </div>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                required
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                className="block w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                placeholder="Email Address"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            name="password"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                            placeholder="••••••••"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                        >
-                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
-                                    <div className="relative group">
-                                        <CheckCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" size={16} />
-                                        <input
-                                            type={showConfirmPassword ? "text" : "password"}
-                                            name="confirmPassword"
-                                            value={formData.confirmPassword}
-                                            onChange={handleChange}
-                                            className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] outline-none transition-all placeholder:text-gray-300 text-sm"
-                                            placeholder="••••••••"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                        >
-                                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full flex items-center justify-center py-2.5 px-4 bg-[#5A0117] text-white text-sm font-semibold rounded-lg hover:bg-[#4a0113] focus:ring-2 focus:ring-[#5A0117]/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-[#5A0117]/10 mt-2"
-                                >
-                                    {loading ? <Loader2 className="animate-spin" size={18} /> : (
+                                    {registrationMethod === "email" && (
                                         <>
-                                            {registrationMethod === "email" ? "Verify & Register" : "Verify & Register"}
-                                            <ArrowRight size={16} className="ml-2" />
+                                            <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <Lock className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                                    </div>
+                                                    <input
+                                                        type={showPassword ? "text" : "password"}
+                                                        name="password"
+                                                        value={formData.password}
+                                                        onChange={handleChange}
+                                                        className="block w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                        placeholder="Password"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                                    >
+                                                        {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <CheckCircle className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-[#5A0117] transition-colors" />
+                                                    </div>
+                                                    <input
+                                                        type={showConfirmPassword ? "text" : "password"}
+                                                        name="confirmPassword"
+                                                        value={formData.confirmPassword}
+                                                        onChange={handleChange}
+                                                        className="block w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#5A0117] focus:border-[#5A0117] transition-all text-sm"
+                                                        placeholder="Confirm Password"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                                    >
+                                                        {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </>
                                     )}
-                                </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full flex items-center justify-center py-2.5 px-6 border border-transparent rounded-lg shadow-md shadow-[#5A0117]/20 text-sm font-bold text-white bg-[#5A0117] hover:bg-[#3d0010] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A0117] transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed mt-1"
+                                    >
+                                        {loading ? (
+                                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                {registrationMethod === "email" ? "Verify & Register" : "Verify & Register"}
+                                                <ArrowRight className="w-3.5 h-3.5" />
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
                             </form>
 
-                            <div className="relative my-6">
+                            <div className="relative text-center my-2">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-gray-100"></div>
                                 </div>
-                                <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
-                                    <span className="bg-white px-2 text-gray-400">Or continue with</span>
-                                </div>
+                                <span className="relative bg-white px-2 text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Or</span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={handleGoogleRegister} className="flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <GoogleIcon className="w-5 h-5" />
-                                    <span className="ml-2 text-xs font-medium text-gray-600">Google</span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={handleGoogleRegister} className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                    <GoogleIcon className="h-3.5 w-3.5 transition-all" />
+                                    <span className="text-[11px] font-semibold text-gray-600">Google</span>
                                 </button>
-                                <button onClick={handleFacebookRegister} className="flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <FacebookIcon className="w-5 h-5" />
-                                    <span className="ml-2 text-xs font-medium text-gray-600">Facebook</span>
+                                <button onClick={handleFacebookRegister} className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all group">
+                                    <FacebookIcon className="h-3.5 w-3.5 transition-all" />
+                                    <span className="text-[11px] font-semibold text-gray-600">Facebook</span>
                                 </button>
                             </div>
 
-                            <p className="mt-6 text-center text-xs text-gray-500">
+                            <p className="text-center text-[11px] text-gray-500 pt-1">
                                 Already have an account?{' '}
-                                <Link href="/login" className="font-semibold text-[#5A0117] hover:underline">
+                                <Link href="/login" className="font-bold text-[#5A0117] hover:underline transition-all">
                                     Sign in instead
                                 </Link>
                             </p>
                         </div>
                     )}
+
+                    {/* Mobile Footer */}
+                    <div className="lg:hidden text-center text-[10px] text-gray-300 pb-2">
+                        © 2024 Kanvei
+                    </div>
                 </div>
             </div>
         </div>
