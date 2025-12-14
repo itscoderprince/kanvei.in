@@ -47,7 +47,7 @@ export default function HeroCarousel() {
     },
     {
       id: "jewellery",
-      image: "/jewelery.webp",
+      image: "/3.jpg",
       link: "/categories/jewellery",
       title: "Elegant Jewellery",
       subtitle: "Timeless Pieces",
@@ -56,7 +56,7 @@ export default function HeroCarousel() {
     },
     {
       id: "cosmetics",
-      image: "/cosmetic.webp",
+      image: "/4.jpg",
       link: "/categories/cosmetics",
       title: "Beauty & Cosmetics",
       subtitle: "Enhance Your Beauty",
