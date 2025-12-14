@@ -12,26 +12,7 @@ import { authOptions } from "../auth/[...nextauth]/route"
 
 export async function GET(request) {
   try {
-    // Ensure database connection with retry logic
-    let connectionAttempts = 0
-    const maxAttempts = 3
-
-    while (connectionAttempts < maxAttempts) {
-      try {
-        await connectDB()
-        break
-      } catch (dbError) {
-        connectionAttempts++
-        console.error(`Database connection attempt ${connectionAttempts} failed:`, dbError)
-
-        if (connectionAttempts >= maxAttempts) {
-          throw new Error(`Failed to connect to database after ${maxAttempts} attempts`)
-        }
-
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
+    await connectDB()
 
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
@@ -50,19 +31,6 @@ export async function GET(request) {
 
     // Check if any filters are applied
     const hasFilters = search || priceMin || priceMax || inStock === 'true'
-
-    console.log('🔍 API Filter Parameters:', {
-      category,
-      subcategory,
-      search,
-      priceMin,
-      priceMax,
-      inStock,
-      sortBy,
-      page,
-      limit,
-      hasFilters
-    })
 
     // Filter by category name if provided (supports hierarchical categories)
     if (category) {
@@ -85,12 +53,6 @@ export async function GET(request) {
           categoryIds.push(child._id)
         })
 
-        console.log(`🔍 Category Filter: ${category}`, {
-          mainCategoryId: categoryDoc._id,
-          childCategoryIds: childCategories.map(c => c._id),
-          totalCategoriesIncluded: categoryIds.length
-        })
-
         // If subcategory is specified, only include that specific subcategory
         if (subcategory) {
           const subcategoryDoc = childCategories.find(child =>
@@ -99,10 +61,8 @@ export async function GET(request) {
           )
 
           if (subcategoryDoc) {
-            console.log(`🎨 Subcategory Filter: ${subcategory} (${subcategoryDoc.name})`)
             filter.categoryId = subcategoryDoc._id
           } else {
-            console.log(`❌ Subcategory '${subcategory}' not found under '${category}'`)
             return Response.json({
               success: true,
               products: [],
@@ -121,7 +81,6 @@ export async function GET(request) {
         }
       } else {
         // If category not found, return empty results
-        console.log(`❌ Category '${category}' not found in database`)
         return Response.json({
           success: true,
           products: [],
@@ -145,7 +104,6 @@ export async function GET(request) {
         { description: { $regex: search, $options: 'i' } },
         { brand: { $regex: search, $options: 'i' } }
       ]
-      console.log(`🔍 Search Filter: "${search}"`)
     }
 
     // Apply price range filters
@@ -153,21 +111,16 @@ export async function GET(request) {
       filter.price = {}
       if (priceMin) {
         filter.price.$gte = parseInt(priceMin)
-        console.log(`💰 Min Price Filter: ≥₹${priceMin}`)
       }
       if (priceMax && priceMax !== '10000') {
         filter.price.$lte = parseInt(priceMax)
-        console.log(`💰 Max Price Filter: ≤₹${priceMax}`)
       }
     }
 
     // Apply stock filter
     if (inStock === 'true') {
       filter.stock = { $gt: 0 }
-      console.log('📦 Stock Filter: In stock only')
     }
-
-    console.log('🎯 Final MongoDB Filter:', JSON.stringify(filter, null, 2))
 
     // Get total count for pagination
     const totalCount = await Product.countDocuments(filter)
@@ -190,10 +143,10 @@ export async function GET(request) {
       default:
         sortOptions = { name: 1 }
     }
-    console.log(`🔄 Sort Options: ${JSON.stringify(sortOptions)}`)
 
     // Build query with pagination and sorting
     let query = Product.find(filter)
+      .select('name title slug price mrp stock categoryId description brand') // Select only essential fields
       .populate('categoryId', 'name slug')
       .sort(sortOptions)
 
@@ -209,6 +162,19 @@ export async function GET(request) {
     // Create a map for faster lookup: productId -> images
     const imageMap = {}
     allImages.forEach(imgDoc => {
+      // Initialize array if it doesn't exist
+      if (!imageMap[imgDoc.productId.toString()]) {
+        imageMap[imgDoc.productId.toString()] = []
+      }
+      // Add image to array, pushing all images not just the last one
+      // The original code: imageMap[...] = imgDoc.img seemed to only keep one image if multiple docs?
+      // Actually ProductImage usually has { img: [url1, url2], productId } or { img: url, productId }?
+      // Based on schema usage elsewhere: await ProductImage.create({ img: body.images, productId: product._id })
+      // It seems 'img' is an Array of strings in the schema usually?
+      // Let's assume imgDoc.img is the array of images.
+
+      // Checking existing logic: 'allImages' find returns docs.
+      // If ProductImage is one-to-one (one doc per product containing array of images):
       imageMap[imgDoc.productId.toString()] = imgDoc.img
     })
 
