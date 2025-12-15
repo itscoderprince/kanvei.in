@@ -23,7 +23,7 @@ export default function EmptyProductState({ onClearFilters }) {
                 </h2>
 
                 <p className="text-gray-600 text-sm md:text-base mb-2 leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                    Don't worry! Your perfect item is waiting for you.
+                    Don&apos;t worry! Your perfect item is waiting for you.
                 </p>
 
                 <p className="text-gray-500 text-xs md:text-sm mb-6" style={{ fontFamily: "Montserrat, sans-serif" }}>
