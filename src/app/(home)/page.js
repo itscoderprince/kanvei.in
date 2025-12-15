@@ -164,7 +164,6 @@ export default function HomePage() {
                   Elevate Your <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DBCCB7] to-[#FDF8F3]">Aesthetic</span>
                 </h2>
-
                 <p className="text-white/80 text-xs md:text-base font-light leading-relaxed max-w-xl mx-auto md:mx-0" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   Experience the perfect blend of tradition and modernity. Get up to <span className="font-semibold text-[#DBCCB7]">50% OFF</span> on our curated premium selection.
                 </p>

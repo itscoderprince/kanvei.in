@@ -155,14 +155,14 @@ export default function ProductCard({ product }) {
 
         {/* Product Info - Minimalist & Detailed */}
         <div className="mt-3.5 space-y-1.5 px-1">
-          {/* Star Rating Placeholder (Visual Only) */}
-          <div className="flex items-center gap-0.5 opacity-60">
-            {[1, 2, 3, 4, 5].map(star => (
-              <svg key={star} className={`w-3 h-3 ${star <= 4 ? 'fill-[#8C6141] text-[#8C6141]' : 'fill-gray-200 text-gray-200'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            ))}
-            <span className="text-[10px] ml-1 text-gray-400 font-medium">(4.0)</span>
+          {/* Kanvei Verified Badge */}
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 border border-blue-100 w-fit">
+            <div className="relative w-3 h-3">
+              <Image src="/kanvei-verified.jpg" alt="Verified" fill className="object-contain" />
+            </div>
+            <span className="text-[9px] uppercase font-bold text-blue-800 tracking-wide" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              Kanvei Verified
+            </span>
           </div>
 
           <h3

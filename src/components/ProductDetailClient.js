@@ -6,13 +6,10 @@ import Image from "next/image"
 import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
-import ReviewsList from "./ReviewsList"
-import ReviewForm from "./ReviewForm"
 import SimilarProducts from "./SimilarProducts"
 import {
   Heart,
   Share2,
-  Star,
   Minus,
   Plus,
   ShoppingBag,
@@ -24,7 +21,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Info,
   Gem,
   Headphones
 } from "lucide-react"
@@ -334,17 +330,14 @@ export default function ProductDetailClient({ product: initialProduct }) {
                   {product.name}
                 </h1>
 
-                {/* Reviews Summary */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md">
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
-                    <span className="font-bold text-gray-900 text-xs">{rating.average.toFixed(1)}</span>
+                {/* Kanvei Verified Badge */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 w-fit">
+                  <div className="relative w-5 h-5">
+                    <Image src="/kanvei-verified.jpg" alt="Verified" fill className="object-contain" />
                   </div>
-                  <button
-                    onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="text-xs text-gray-500 hover:text-[#5A0117] hover:underline transition-colors">
-                    Read all {rating.count} reviews
-                  </button>
+                  <span className="text-xs uppercase font-bold text-blue-800 tracking-wide" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                    Kanvei Verified Product
+                  </span>
                 </div>
               </div>
 
@@ -523,41 +516,6 @@ export default function ProductDetailClient({ product: initialProduct }) {
             <SimilarProducts categoryId={product.category} currentProductId={product._id} />
           </div>
         )}
-
-        {/* --- REVIEWS SECTION --- */}
-        <div id="reviews-section" className="mt-20 border-t border-gray-100 pt-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-            {/* Review Stats */}
-            <div className="lg:col-span-4">
-              <h2 className="text-3xl font-bold text-[#5A0117] mb-6" style={{ fontFamily: "Sugar, serif" }}>Customer Reviews</h2>
-              <div className="bg-gray-50 p-8 rounded-2xl">
-                <div className="text-center mb-6">
-                  <div className="text-5xl font-bold text-gray-900 mb-2">{rating.average.toFixed(1)}</div>
-                  <div className="flex justify-center gap-1 mb-2">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Star key={star} className={`w-5 h-5 ${star <= Math.round(rating.average) ? "text-amber-400 fill-current" : "text-gray-300"}`} />
-                    ))}
-                  </div>
-                  <p className="text-gray-500 text-sm">Based on {rating.count} ratings</p>
-                </div>
-
-                {/* Write Review Button (Jumps to form) */}
-                <p className="text-xs text-center text-gray-400 mt-4 mb-2">Have you used this product?</p>
-              </div>
-            </div>
-
-            {/* Reviews List & Form */}
-            <div className="lg:col-span-8">
-              <ReviewForm productId={product._id} onReviewAdded={() => { /* Reload via state or context if needed */ }} />
-              <div className="mt-10">
-                <p className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Recent Reviews</p>
-                <ReviewsList reviews={reviews} />
-              </div>
-            </div>
-
-          </div>
-        </div>
 
       </div>
     </div>
