@@ -65,7 +65,7 @@ export default function ElectronicsPage() {
     <CategoryPage
       categoryName="Electronics"
       displayName="Electronics & Gadgets"
-      description="Discover the latest technology, gadgets, and electronic devices for modern living"
+      description="Explore the future with our curated collection of high-performance electronics. From state-of-the-art smart home devices to premium audio gear and wearables, discover technology that seamlessly blends innovation with sophisticated design."
       icon="📱"
       subcategories={subcategories}
     />

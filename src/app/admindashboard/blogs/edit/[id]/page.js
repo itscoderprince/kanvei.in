@@ -1,17 +1,17 @@
 "use client"
-import { useState, useEffect, use } from "react"
-import { useRouter } from "next/navigation"
-import AdminLayout from "../../../../../components/shared/AdminLayout"
-import ProtectedRoute from "../../../../../components/ProtectedRoute"
-import BlogForm from "../../../../../components/admin/BlogForm"
-import { useNotification } from "../../../../../contexts/NotificationContext"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
+import BlogForm from "@/components/admin/BlogForm"
+import toast from "react-hot-toast"
+import { Loader2 } from "lucide-react"
 
-export default function EditBlog({ params }) {
-  const { id } = use(params)
+export default function EditBlogPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { id } = params
+
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const { showSuccess, showError } = useNotification()
 
   useEffect(() => {
     fetchBlog()
@@ -20,72 +20,55 @@ export default function EditBlog({ params }) {
   const fetchBlog = async () => {
     try {
       const response = await fetch(`/api/blogs/${id}`)
-      if (response.ok) {
-        const blogData = await response.json()
-        setBlog(blogData)
+      const data = await response.json()
+      if (data.success) {
+        setBlog(data.blog)
       } else {
-        showError("❌ Blog not found")
+        toast.error("Failed to fetch blog details")
         router.push("/admindashboard/blogs")
       }
     } catch (error) {
-      console.error("Error fetching blog:", error)
-      showError("❌ Failed to load blog")
-      router.push("/admindashboard/blogs")
+      toast.error("Error loading blog")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (data) => {
     try {
       const response = await fetch(`/api/blogs/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       })
 
-      if (response.ok) {
-        showSuccess("✅ Blog updated successfully!")
-        setTimeout(() => {
-          router.push("/admindashboard/blogs")
-        }, 1000)
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success("Blog updated successfully!")
+        router.push("/admindashboard/blogs")
       } else {
-        const error = await response.json()
-        showError(`❌ Failed to update blog: ${error.error || 'Unknown error'}`)
+        toast.error(result.error || "Failed to update blog")
       }
     } catch (error) {
-      console.error("Error updating blog:", error)
-      showError("❌ Failed to update blog. Please try again.")
+      console.error("Update Blog Error:", error)
+      toast.error("An error occurred while updating the blog")
     }
-  }
-
-  const handleCancel = () => {
-    router.push("/admindashboard/blogs")
   }
 
   if (loading) {
     return (
-      <ProtectedRoute adminOnly={true}>
-        <AdminLayout>
-          <div className="p-6 text-center">
-            <div
-              className="animate-spin rounded-full h-8 w-8 mx-auto mb-4"
-              style={{ borderColor: "#5A0117", borderTopColor: "transparent", borderWidth: "2px" }}
-            ></div>
-            <p>Loading blog...</p>
-          </div>
-        </AdminLayout>
-      </ProtectedRoute>
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#5A0117]" size={40} />
+      </div>
     )
   }
 
   return (
-    <ProtectedRoute adminOnly={true}>
-      <AdminLayout>
-        <BlogForm blog={blog} onSubmit={handleSubmit} onCancel={handleCancel} />
-      </AdminLayout>
-    </ProtectedRoute>
+    <BlogForm
+      blog={blog}
+      onSubmit={handleSubmit}
+      onCancel={() => router.push("/admindashboard/blogs")}
+    />
   )
 }

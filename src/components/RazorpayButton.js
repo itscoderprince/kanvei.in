@@ -9,12 +9,18 @@ export default function RazorpayButton({ cartItems, orderData, appliedCoupon, fi
 
     try {
       // Create Razorpay order with server-side amount calculation
+      console.log('💳 RAZORPAY BUTTON - SENDING PAYLOAD:', {
+        cartItems,
+        shippingAddress: orderData.shippingAddress,
+        appliedCoupon,
+        finalAmount
+      })
       const orderResponse = await fetch("/api/payment/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           cartItems,
           shippingAddress: orderData.shippingAddress,
           appliedCoupon,

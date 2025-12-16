@@ -19,7 +19,36 @@ import {
   Type as SubtitleIcon
 } from "lucide-react"
 
+import dynamic from 'next/dynamic'
+import { useRef, useMemo } from 'react'
+
+// Dynamic import for Jodit to avoid SSR issues
+const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false })
+
 export default function BlogForm({ blog = null, onSubmit, onCancel }) {
+  const editor = useRef(null)
+
+  const config = useMemo(() => ({
+    readonly: false,
+    placeholder: 'Start writing your amazing blog post...',
+    height: 500,
+    uploader: {
+      insertImageAsBase64URI: true
+    },
+    buttons: [
+      'source', '|',
+      'bold', 'strikethrough', 'underline', 'italic', '|',
+      'ul', 'ol', '|',
+      'outdent', 'indent', '|',
+      'font', 'fontsize', 'brush', 'paragraph', '|',
+      'image', 'video', 'table', 'link', '|',
+      'align', 'undo', 'redo', '|',
+      'hr', 'eraser', 'copyformat', '|',
+      'fullsize', 'selectall', 'print', '|',
+      'about'
+    ]
+  }), [])
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -282,18 +311,17 @@ export default function BlogForm({ blog = null, onSubmit, onCancel }) {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Main Content *
-                </label>
-                <textarea
-                  name="content"
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Main Content *
+              </label>
+              <div className="prose-editor-wrapper">
+                <JoditEditor
+                  ref={editor}
                   value={formData.content}
-                  onChange={handleInputChange}
-                  required
-                  rows={15}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5A0117] focus:border-transparent transition-all outline-none"
-                  placeholder="Write your amazing blog content here..."
+                  config={config}
+                  tabIndex={1}
+                  onBlur={(newContent) => setFormData(prev => ({ ...prev, content: newContent }))}
+                  onChange={(newContent) => { }}
                 />
               </div>
             </section>
@@ -475,6 +503,6 @@ export default function BlogForm({ blog = null, onSubmit, onCancel }) {
           </form>
         </div>
       </div>
-    </div>
+    </div >
   )
 }

@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { signIn, signOut } from 'next-auth/react'
 
 export default function ForgotPasswordPage() {
-  const [step, setStep] = useState(1) // 1: Enter Email, 2: Enter OTP & New Password
+  const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
@@ -70,9 +70,10 @@ export default function ForgotPasswordPage() {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault()
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    // Relaxed regex: 8+ chars, Uppercase, Lowercase, Number. Special characters are OPTIONAL.
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
     if (!passwordRegex.test(password)) {
-      toast.error('Password must be 8+ characters with uppercase, lowercase, number, and special character.')
+      toast.error('Password must be 8+ characters with uppercase, lowercase, and number.')
       return
     }
     if (password !== confirmPassword) {

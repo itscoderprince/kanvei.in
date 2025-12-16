@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server"
-import connectDB from "../../../../../lib/mongodb"
-import Blog from "../../../../../lib/models/Blog.js"
+import dbConnect from "@/lib/mongodb"
+import Blog from "@/lib/models/Blog"
 
 export async function GET(request, { params }) {
+  await dbConnect()
+  const { slug } = await params
+
   try {
-    await connectDB()
-    const { slug } = params
-    const blog = await Blog.findOne({ slug }).lean()
+    // Find blog by slug and increment views
+    const blog = await Blog.findOneAndUpdate(
+      { slug, published: true }, // Only find published blogs
+      { $inc: { views: 1 } },
+      { new: true }
+    )
 
     if (!blog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 })
+      return NextResponse.json({ success: false, error: "Blog post not found" }, { status: 404 })
     }
 
-    return NextResponse.json(blog)
+    return NextResponse.json(blog) // Return the blog object directly to match frontend expectation
   } catch (error) {
-    console.error("Error fetching blog by slug:", error)
-    return NextResponse.json({ error: "Failed to fetch blog" }, { status: 500 })
+    console.error("Fetch Blog by Slug Error:", error)
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 })
   }
 }

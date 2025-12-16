@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, use } from "react"
+import { useState, useEffect, use, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import Header from "../../../components/shared/Header"
 import Footer from "../../../components/shared/Footer"
@@ -140,28 +140,33 @@ export default function OrderDetailPage({ params }) {
             {/* Status Stepper */}
             {!isCancelled && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="relative">
-                  <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 rounded-full z-0"></div>
-                  <div
-                    className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-[#5A0117] to-[#8C6141] -translate-y-1/2 rounded-full z-0 transition-all duration-700"
-                    style={{ width: `${((statusInfo.step - 1) / 4) * 100}%` }}
-                  ></div>
-                  <div className="relative z-10 flex justify-between w-full">
-                    {[1, 2, 3, 4, 5].map((step) => {
-                      const isActive = statusInfo.step >= step
-                      const isCurrent = statusInfo.step === step
-                      return (
-                        <div key={step} className="flex flex-col items-center gap-2">
+                <div className="flex items-start w-full mb-8">
+                  {[1, 2, 3, 4, 5].map((step, index) => {
+                    const isActive = statusInfo.step >= step
+                    const isCompleted = statusInfo.step > step
+                    const statusLabel = ORDER_STATUSES.find(s => s.step === step)?.label
+
+                    return (
+                      <Fragment key={step}>
+                        <div className="relative z-10 flex flex-col items-center w-8 flex-none">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive ? 'bg-[#5A0117] border-[#5A0117] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
                             {isActive ? <MdDone className="w-4 h-4" /> : <span className="text-xs">{step}</span>}
                           </div>
-                          <span className={`text-[10px] sm:text-xs font-medium ${isActive ? 'text-[#5A0117]' : 'text-gray-400'} hidden sm:block`}>
-                            {ORDER_STATUSES.find(s => s.step === step)?.label}
+                          <span className={`absolute top-full mt-2 w-32 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs font-medium text-center ${isActive ? 'text-[#5A0117]' : 'text-gray-400'} hidden sm:block`}>
+                            {statusLabel}
                           </span>
                         </div>
-                      )
-                    })}
-                  </div>
+
+                        {index < 4 && (
+                          <div className="flex-1 h-1 mt-3.5 bg-gray-100 rounded-full relative">
+                            <div
+                              className={`absolute top-0 left-0 h-full bg-gradient-to-r from-[#5A0117] to-[#8C6141] transition-all duration-500 rounded-full ${isCompleted ? 'w-full' : 'w-0'}`}
+                            />
+                          </div>
+                        )}
+                      </Fragment>
+                    )
+                  })}
                 </div>
               </div>
             )}

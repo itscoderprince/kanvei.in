@@ -59,60 +59,45 @@ const WishlistItem = ({ item, isDrawer, onRemove, onMoveToCart }) => {
 
     // Desktop View (Polished Card)
     return (
-        <div className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#DBCCB7]/50 transition-all duration-300 flex flex-col h-full">
-            {/* Remove Button (Generic) */}
-            <button
-                onClick={() => onRemove(product._id)}
-                className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
-                title="Remove from wishlist"
-            >
-                <X className="w-4 h-4" />
-            </button>
-
-            {/* Image */}
-            <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
+        <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-[#5A0117]/20 transition-all duration-300 flex flex-col">
+            <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden">
                 <Image
                     src={product.images?.[0]?.url || "/placeholder.jpg"}
                     alt={product.name}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
 
-                {/* Overlay Action */}
-                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/60 to-transparent">
+                {/* Remove Button - Top Right */}
+                <button
+                    onClick={() => onRemove(product._id)}
+                    className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-600 hover:bg-white shadow-sm transition-all"
+                    title="Remove from wishlist"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+            </div>
+
+            <div className="p-5 flex flex-col flex-1">
+                <div className="mb-4">
+                    <h3 className="font-bold text-gray-900 line-clamp-1 mb-1" style={{ fontFamily: "Sugar, serif" }}>
+                        <Link href={`/products/${product._id}`} className="hover:text-[#5A0117] transition-colors">
+                            {product.name}
+                        </Link>
+                    </h3>
+                    <p className="text-lg font-bold text-[#5A0117]">
+                        ₹{product.price?.toLocaleString()}
+                    </p>
+                </div>
+
+                <div className="mt-auto">
                     <button
                         onClick={() => onMoveToCart(item)}
-                        className="w-full py-3 bg-white text-[#5A0117] font-semibold rounded-xl hover:bg-[#DBCCB7] transition-colors flex items-center justify-center gap-2 shadow-lg"
-                        style={{ fontFamily: "Montserrat, sans-serif" }}
+                        className="w-full py-2.5 px-4 bg-white border-2 border-[#5A0117] text-[#5A0117] font-semibold rounded-xl hover:bg-[#5A0117] hover:text-white transition-all flex items-center justify-center gap-2 group/btn"
                     >
                         <ShoppingCart className="w-4 h-4" />
                         Move to Cart
                     </button>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 flex-1 flex flex-col">
-                <div className="mb-2">
-                    <p className="text-xs font-medium text-[#8C6141] uppercase tracking-wider mb-1">
-                        {product.category?.name || "Accessory"}
-                    </p>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#5A0117] transition-colors" style={{ fontFamily: "Sugar, serif" }}>
-                        <Link href={`/products/${product._id}`}>
-                            {product.name}
-                        </Link>
-                    </h3>
-                </div>
-
-                <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between">
-                    <div>
-                        <p className="text-xs text-gray-500 line-through">
-                            ₹{(product.price * 1.2).toLocaleString()}
-                        </p>
-                        <p className="text-xl font-bold text-[#5A0117]">
-                            ₹{product.price?.toLocaleString()}
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -132,9 +117,6 @@ export default function WishlistContent({ isDrawer = false, onClose }) {
     // Recommendation State
     const [recommended, setRecommended] = useState([])
     const [recLoading, setRecLoading] = useState(false)
-
-    // Note: Context already handles initial fetching on login, 
-    // so we don't need to re-fetch on mount unless specifically needed.
 
     // Fetch recommendations when wishlist is empty
     useEffect(() => {
@@ -212,7 +194,7 @@ export default function WishlistContent({ isDrawer = false, onClose }) {
             <div className={isDrawer ? "space-y-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"}>
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className={`bg-white border border-gray-100 rounded-2xl p-4 ${isDrawer ? 'flex gap-4' : ''}`}>
-                        <div className={`bg-gray-100 rounded-lg animate-pulse ${isDrawer ? 'w-20 h-20' : 'w-full aspect-[4/5] mb-4'}`} />
+                        <div className={`bg-gray-100 rounded-lg animate-pulse ${isDrawer ? 'w-20 h-20' : 'w-full aspect-[3/4] mb-4'}`} />
                         <div className="flex-1 space-y-3">
                             <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
                             <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
@@ -226,11 +208,8 @@ export default function WishlistContent({ isDrawer = false, onClose }) {
     if (contextWishlist.length === 0) {
         return (
             <div className={`flex flex-col items-center justify-center text-center px-4 ${isDrawer ? 'h-[60vh]' : 'py-20'}`}>
-                <div className="relative w-24 h-24 mb-6">
-                    <div className="absolute inset-0 bg-[#FDF8F3] rounded-full animate-ping opacity-75"></div>
-                    <div className="relative w-24 h-24 bg-[#FDF8F3] rounded-full flex items-center justify-center">
-                        <Heart className="w-10 h-10 text-[#DBCCB7]" />
-                    </div>
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                    <Heart className="w-10 h-10 text-gray-300" />
                 </div>
 
                 <h3 className="text-2xl font-bold text-[#5A0117] mb-2" style={{ fontFamily: "Sugar, serif" }}>
@@ -266,15 +245,13 @@ export default function WishlistContent({ isDrawer = false, onClose }) {
                 ))}
 
             {!isDrawer && contextWishlist.length > 0 && (
-                <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-2xl hover:border-[#DBCCB7] hover:bg-[#FDF8F3] transition-colors group cursor-pointer">
-                    <Link href="/products" className="text-center">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                            <ArrowRight className="w-5 h-5 text-[#5A0117]" />
-                        </div>
-                        <p className="font-semibold text-gray-900 group-hover:text-[#5A0117]">Discover More</p>
-                        <p className="text-xs text-gray-500">Continue shopping</p>
-                    </Link>
-                </div>
+                <Link href="/products" className="group flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-2xl hover:border-[#5A0117]/30 hover:bg-[#5A0117]/5 transition-all text-center h-full min-h-[300px]">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                        <ArrowRight className="w-5 h-5 text-[#5A0117]" />
+                    </div>
+                    <p className="font-bold text-lg text-gray-900 group-hover:text-[#5A0117]">Discover More</p>
+                    <p className="text-sm text-gray-500 mt-1">Browse our latest collection</p>
+                </Link>
             )}
         </div>
     )

@@ -41,8 +41,8 @@ const categories = [
   {
     name: "Electronics",
     description:
-      "Cutting-edge electronic devices and accessories featuring the latest technology and innovative design.",
-    image: "/placeholder.svg?height=300&width=400",
+      "Explore the future with our curated collection of high-performance electronics. From state-of-the-art smart home devices to premium audio gear and wearables, discover technology that seamlessly blends innovation with sophisticated design.",
+    image: "/electronics.png",
   },
 ]
 

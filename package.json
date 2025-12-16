@@ -19,6 +19,8 @@
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "jodit": "^4.7.9",
+    "jodit-react": "^5.2.38",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.539.0",
     "mongodb": "^6.18.0",

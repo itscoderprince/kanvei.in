@@ -70,13 +70,15 @@ export default function RegisterPage() {
             toast.error("Please enter your email address")
             return false
         }
-        if (formData.password.length < 6) {
-            toast.error("Password must be at least 6 characters")
-            return false
-        }
-        if (formData.password !== formData.confirmPassword) {
-            toast.error("Passwords do not match")
-            return false
+        if (registrationMethod === "email") {
+            if (formData.password.length < 6) {
+                toast.error("Password must be at least 6 characters")
+                return false
+            }
+            if (formData.password !== formData.confirmPassword) {
+                toast.error("Passwords do not match")
+                return false
+            }
         }
         return true
     }

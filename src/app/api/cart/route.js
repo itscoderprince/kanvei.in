@@ -77,7 +77,7 @@ export async function GET(request) {
     }
 
     // Format cart items for frontend display
-    const formattedItems = await Promise.all(cart.items.map(async (item) => {
+    const formattedItems = (await Promise.all(cart.items.map(async (item) => {
       let formattedItem = {
         _id: item._id,
         quantity: item.quantity,
@@ -86,7 +86,10 @@ export async function GET(request) {
         itemType: item.itemType
       }
 
-      if (item.itemType === 'product' && item.product) {
+      if (item.itemType === 'product') {
+        // If product is missing (deleted), return null to filter it out
+        if (!item.product) return null
+
         // Main product - fetch images from ProductImage collection
         const productImageDoc = await ProductImage.findOne({ productId: item.product._id })
         const productImages = productImageDoc?.img || []
@@ -94,26 +97,6 @@ export async function GET(request) {
 
         // Priority: product images -> snapshot image -> no image (will show "No Image" placeholder)
         const imageUrl = productImages[0] || snapshotImage
-
-        console.log('🖼️ MAIN PRODUCT DEBUG:', {
-          productId: item.product._id,
-          productName: item.product.name,
-
-          // Product images debugging
-          productImageDoc: !!productImageDoc,
-          productImagesArray: productImages,
-          productImagesLength: productImages.length,
-          firstImage: productImages[0],
-          firstImageType: typeof productImages[0],
-
-          // Snapshot debugging
-          snapshotImage: snapshotImage,
-
-          // Final result
-          finalImageUrl: imageUrl,
-          hasImage: !!imageUrl,
-          imageLength: imageUrl ? imageUrl.length : 'NULL'
-        })
 
         formattedItem = {
           ...formattedItem,
@@ -130,7 +113,10 @@ export async function GET(request) {
             slug: item.product.slug
           }
         }
-      } else if (item.itemType === 'productOption' && item.productOption) {
+      } else if (item.itemType === 'productOption') {
+        // If option is missing, return null
+        if (!item.productOption) return null
+
         // Product option - fetch images from OptionImage collection
         const optionImageDoc = await OptionImage.findOne({ optionId: item.productOption._id })
         const optionImages = optionImageDoc?.img || []
@@ -144,18 +130,10 @@ export async function GET(request) {
         }
 
         const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
-        const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
+        // Safe check for productId naming
+        if (!mainProductName) return null
 
-        console.log('🔧 PRODUCT OPTION DEBUG:', {
-          optionId: item.productOption._id,
-          productId: item.productOption.productId?._id,
-          mainProductName: mainProductName,
-          optionDetails: optionDetails,
-          optionImageDoc: !!optionImageDoc,
-          optionImages: optionImages,
-          finalImageUrl: imageUrl,
-          hasImage: !!imageUrl
-        })
+        const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
 
         formattedItem = {
           ...formattedItem,
@@ -177,7 +155,7 @@ export async function GET(request) {
       }
 
       return formattedItem
-    }))
+    }))).filter(item => item !== null) // Filter out nulls (orphaned items)
 
     const formattedCart = {
       items: formattedItems,
@@ -557,7 +535,7 @@ export async function PUT(request) {
     console.log('📦 Updated cart:', updatedCart ? 'Found' : 'Not found')
 
     // Format cart items for frontend display (Same logic as GET)
-    const formattedItems = await Promise.all(updatedCart.items.map(async (item) => {
+    const formattedItems = (await Promise.all(updatedCart.items.map(async (item) => {
       let formattedItem = {
         _id: item._id,
         quantity: item.quantity,
@@ -566,7 +544,8 @@ export async function PUT(request) {
         itemType: item.itemType
       }
 
-      if (item.itemType === 'product' && item.product) {
+      if (item.itemType === 'product') {
+        if (!item.product) return null
         // Main product - fetch images from ProductImage collection
         const productImageDoc = await ProductImage.findOne({ productId: item.product._id })
         const productImages = productImageDoc?.img || []
@@ -589,7 +568,9 @@ export async function PUT(request) {
             slug: item.product.slug
           }
         }
-      } else if (item.itemType === 'productOption' && item.productOption) {
+      } else if (item.itemType === 'productOption') {
+        if (!item.productOption) return null
+
         // Product option - fetch images from OptionImage collection
         const optionImageDoc = await OptionImage.findOne({ optionId: item.productOption._id })
         const optionImages = optionImageDoc?.img || []
@@ -603,6 +584,8 @@ export async function PUT(request) {
         }
 
         const mainProductName = item.productOption.productId?.name || item.productSnapshot?.name
+        if (!mainProductName) return null
+
         const optionDetails = [item.productOption.size, item.productOption.color].filter(Boolean).join(' - ')
 
         formattedItem = {
@@ -624,7 +607,7 @@ export async function PUT(request) {
       }
 
       return formattedItem
-    }))
+    }))).filter(item => item !== null)
 
     const formattedCart = {
       items: formattedItems,

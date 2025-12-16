@@ -11,10 +11,10 @@ const ProductSchema = new mongoose.Schema(
     height: { type: Number },
     width: { type: Number },
     mrp: { type: Number },
-    price: { type: Number, required: true },
-    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
-    stock: { type: Number, default: 0 },
-    featured: { type: Boolean, default: false }
+    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true, index: true },
+    stock: { type: Number, default: 0, index: true },
+    featured: { type: Boolean, default: false, index: true },
+    price: { type: Number, required: true, index: true },
   },
   { timestamps: true },
 )

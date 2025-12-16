@@ -57,7 +57,11 @@ export async function POST(request) {
       </div>
     `
 
-    await sendEmail(email, subject, htmlContent)
+    const emailResult = await sendEmail(email, subject, htmlContent)
+
+    if (!emailResult?.success) {
+      throw new Error(emailResult?.error || "Failed to send OTP email")
+    }
 
     return NextResponse.json({
       success: true,

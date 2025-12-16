@@ -17,12 +17,7 @@ export default function HomeProductShow() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/products?limit=12&sortBy=name&page=1', {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        })
+        const response = await fetch('/api/products?limit=12&sortBy=name&page=1')
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -41,7 +36,7 @@ export default function HomeProductShow() {
         attempts++
         if (attempts < maxAttempts) {
           // Retry after 1 second
-          setTimeout(fetchProducts, 1500)
+          setTimeout(fetchProducts, 8000)
         } else {
           setError('Unable to load products.')
         }

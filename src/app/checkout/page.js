@@ -196,32 +196,39 @@ export default function CheckoutPage() {
     }
   }
 
-  // Helper to map cart items consistently
-  const getCartItems = () => items.map((item) => {
-    // For product options (from cart with isOption: true)
-    if (item.isOption && item.productOptionId) {
+  // Helper to map cart items consistently and filter invalid ones
+  const getCartItems = () => {
+    console.log('🛒 CHECKOUT DEBUG - RAW CONTEXT ITEMS:', items)
+    return items.map((item, index) => {
+      console.log(`🔍 DEBUG ITEM [${index}]:`, item)
+      // For product options (from cart with isOption: true)
+      if (item.isOption && item.productOptionId) {
+        return {
+          productId: item.productOption?._id || item.productOptionId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          itemType: 'productOption',
+          size: item.size,
+          color: item.color
+        }
+      }
+      // For main products
+      const pid = item.product?._id || (typeof item.product === 'string' ? item.product : null) || item.productId
+
       return {
-        productId: item.productOption?._id || item.productOptionId,
+        productId: pid,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        itemType: 'productOption',
-        size: item.size,
-        color: item.color
+        itemType: 'product'
       }
-    }
-    // For main products
-    // Robustly extract product ID handling populated object or direct ID string
-    const pid = item.product?._id || (typeof item.product === 'string' ? item.product : null) || item.productId
-
-    return {
-      productId: pid,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      itemType: 'product'
-    }
-  })
+    }).filter(item => {
+      const isValid = !!item.productId
+      if (!isValid) console.warn('⚠️ FILTERED OUT INVALID ITEM:', item)
+      return isValid
+    }) // CRITICAL: Filter out items with undefined productId
+  }
 
   // Required for Razorpay button prop compatibility
   const getOrderData = () => ({
@@ -235,11 +242,17 @@ export default function CheckoutPage() {
 
     if (!validateForm()) return
 
+    const validItems = getCartItems()
+    if (validItems.length === 0) {
+      toast.error('Your cart contains unavailable items. Please refresh.')
+      return
+    }
+
     setLoading(true)
 
     try {
       const orderData = {
-        items: getCartItems(), // OPTIMIZED: Reusing the helper function
+        items: validItems,
         totalAmount: getFinalTotal(),
         originalAmount: appliedCoupon ? calculateTotal() : null,
         discountAmount: appliedCoupon ? appliedCoupon.discount.discountAmount : 0,
@@ -286,7 +299,9 @@ export default function CheckoutPage() {
     toast.error('💳 Payment failed: ' + error)
   }
 
-  if (items.length === 0) {
+  const validCartItems = items // The cart context items, used for UI display check
+
+  if (!loading && items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />

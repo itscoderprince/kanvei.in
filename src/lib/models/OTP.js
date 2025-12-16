@@ -13,7 +13,7 @@ const OTPSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["login", "register", "password-reset"],
+      enum: ["login", "register", "password-reset", "forgot-password"],
       required: true,
     },
     expiresAt: {

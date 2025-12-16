@@ -108,6 +108,7 @@ export default function Header() {
                 { name: 'Jewellery', href: '/categories/jewellery' },
                 { name: 'Stationery', href: '/categories/stationery' },
                 { name: 'Cosmetics', href: '/categories/cosmetics' },
+                { name: 'Electronic', href: '/categories/electronics' },
               ].map((link) => (
                 <Link
                   key={link.name}

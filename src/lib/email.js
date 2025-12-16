@@ -4,13 +4,15 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, "") : "",
   },
 })
 
 export const sendEmail = async (to, subject, html) => {
   try {
     console.log(`📧 Attempting to send email to: ${to} | Subject: ${subject}`)
+    console.log(`🔑 Debug: EMAIL_USER=${process.env.EMAIL_USER}`)
+    console.log(`🔑 Debug: EMAIL_PASS length=${process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0}`)
 
     // Verify transporter connection first
     try {
