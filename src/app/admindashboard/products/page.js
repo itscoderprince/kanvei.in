@@ -36,6 +36,33 @@ export default function AdminProducts() {
     fetchCategories()
   }, [])
 
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/products")
+      const data = await res.json()
+      if (data.success) {
+        setAllProducts(data.products)
+        setProducts(data.products)
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/categories")
+      const data = await res.json()
+      if (data.success) {
+        setCategories(data.categories)
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+    }
+  }
+
   const filterProducts = useCallback(() => {
     let filtered = [...allProducts]
 
