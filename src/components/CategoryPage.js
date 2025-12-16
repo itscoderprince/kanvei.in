@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import ProductCard from "./ProductCard"
 import ProductSkeleton from "./ProductSkeleton"
@@ -43,8 +43,7 @@ function CategoryPageContent({ categoryName, displayName = "", description = "",
     }
   }, [searchParams])
 
-  // Fetch Products
-  const fetchProducts = async (isLoadMore = false) => {
+  const fetchProducts = useCallback(async (isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true)
@@ -52,7 +51,6 @@ function CategoryPageContent({ categoryName, displayName = "", description = "",
         setLoading(true)
       }
 
-      // Construct API URL
       const queryParams = new URLSearchParams()
       queryParams.append('category', categoryName.toLowerCase())
       queryParams.append('page', isLoadMore ? page + 1 : 1)
@@ -78,7 +76,6 @@ function CategoryPageContent({ categoryName, displayName = "", description = "",
         setTotalProducts(data.total || 0)
         setHasMore(products.length + data.products.length < (data.total || 0))
       } else {
-        // Fallback for demo if API fails
         console.warn("API failed, using fallback or empty list")
         setProducts(prev => isLoadMore ? prev : [])
       }
@@ -89,15 +86,14 @@ function CategoryPageContent({ categoryName, displayName = "", description = "",
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [filters, sortBy, categoryName, page, products.length])
 
-  // Debounce fetch when filters change
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchProducts(false)
     }, 500)
     return () => clearTimeout(timer)
-  }, [filters, sortBy, categoryName])
+  }, [fetchProducts])
 
   const loadMoreProducts = () => {
     if (!loadingMore && hasMore) {

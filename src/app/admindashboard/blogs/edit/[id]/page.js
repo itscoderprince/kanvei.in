@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import BlogForm from "@/components/admin/BlogForm"
 import toast from "react-hot-toast"
@@ -13,11 +13,7 @@ export default function EditBlogPage() {
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchBlog()
-  }, [id])
-
-  const fetchBlog = async () => {
+  const fetchBlog = useCallback(async () => {
     try {
       const response = await fetch(`/api/blogs/${id}`)
       const data = await response.json()
@@ -32,7 +28,11 @@ export default function EditBlogPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, router])
+
+  useEffect(() => {
+    fetchBlog()
+  }, [fetchBlog])
 
   const handleSubmit = async (data) => {
     try {

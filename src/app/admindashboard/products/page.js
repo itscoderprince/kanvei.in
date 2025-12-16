@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import AdminLayout from "../../../components/shared/AdminLayout"
 import ProductForm from "../../../components/admin/ProductForm"
@@ -36,38 +36,7 @@ export default function AdminProducts() {
     fetchCategories()
   }, [])
 
-  useEffect(() => {
-    filterProducts()
-  }, [searchTerm, selectedCategory, dateRange, allProducts])
-
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch("/api/products")
-      const data = await res.json()
-      if (data.success) {
-        setAllProducts(data.products)
-        setProducts(data.products)
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories")
-      const data = await res.json()
-      if (data.success) {
-        setCategories(data.categories)
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-    }
-  }
-
-  const filterProducts = () => {
+  const filterProducts = useCallback(() => {
     let filtered = [...allProducts]
 
     if (searchTerm) {
@@ -101,7 +70,11 @@ export default function AdminProducts() {
     }
 
     setProducts(filtered)
-  }
+  }, [searchTerm, selectedCategory, dateRange, allProducts])
+
+  useEffect(() => {
+    filterProducts()
+  }, [filterProducts])
 
   const clearFilters = () => {
     setSearchTerm("")
@@ -387,8 +360,8 @@ export default function AdminProducts() {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${product.stock > 10 ? 'bg-green-50 text-green-700' :
-                                product.stock > 0 ? 'bg-yellow-50 text-yellow-700' :
-                                  'bg-red-50 text-red-700'
+                              product.stock > 0 ? 'bg-yellow-50 text-yellow-700' :
+                                'bg-red-50 text-red-700'
                               }`}>
                               {product.stock} in stock
                             </span>

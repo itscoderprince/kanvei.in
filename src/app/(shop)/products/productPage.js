@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import ProductCard from "../../../components/ProductCard"
 import ProductFilters from "../../../components/ProductFilters"
@@ -65,24 +65,7 @@ export default function ProductPage() {
     }
   }, [searchParams])
 
-  // Fetch Products when Filters Change
-  useEffect(() => {
-    fetchProducts()
-  }, [filters, pagination.currentPage])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories")
-      const data = await res.json()
-      if (data.success) {
-        setCategories(data.categories)
-      }
-    } catch (error) {
-      console.error("Failed to fetch categories", error)
-    }
-  }
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
       // Build Query String
@@ -114,7 +97,12 @@ export default function ProductPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters, pagination.currentPage])
+
+  // Fetch Products when Filters Change
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   // Helper to remove a single filter from Active Chips
   const removeFilter = (key) => {

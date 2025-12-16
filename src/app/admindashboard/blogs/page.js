@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import {
   Plus,
@@ -26,11 +26,7 @@ export default function BlogsListPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const debouncedSearch = useDebounce(search, 500)
 
-  useEffect(() => {
-    fetchBlogs()
-  }, [debouncedSearch, statusFilter, pagination.page])
-
-  const fetchBlogs = async () => {
+  const fetchBlogs = useCallback(async () => {
     setLoading(true)
     try {
       const queryParams = new URLSearchParams({
@@ -54,7 +50,11 @@ export default function BlogsListPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedSearch, statusFilter, pagination.page])
+
+  useEffect(() => {
+    fetchBlogs()
+  }, [fetchBlogs])
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this blog post?")) return
