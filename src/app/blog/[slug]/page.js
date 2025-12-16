@@ -87,14 +87,14 @@ export default async function BlogPost({ params }) {
               <Link href="/blog" className="text-sm font-medium text-gray-900 hover:text-[#5A0117] transition-colors">
                 Back to Journal
               </Link>
-              <a href="/products" className="ml-2 bg-[#5A0117] text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#5A0117]/90 transition-colors shadow">
+              <Link href="/products" className="ml-2 bg-[#5A0117] text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#5A0117]/90 transition-colors shadow">
                 Shop Collection
-              </a>
+              </Link>
             </div>
             {/* Mobile CTA */}
-            <a href="/products" className="md:hidden bg-[#5A0117] text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">
+            <Link href="/products" className="md:hidden bg-[#5A0117] text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">
               Shop
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -237,9 +237,9 @@ export default async function BlogPost({ params }) {
               <div className="bg-[#FDFBF7] p-6 rounded-sm border border-[#DBCCB7]/30 text-center">
                 <h5 className="font-serif text-lg text-[#5A0117] mb-2">Inspired by the look?</h5>
                 <p className="text-xs text-gray-500 mb-4">Discover our latest sustainable collection.</p>
-                <a href="/products" className="block w-full py-3 bg-[#5A0117] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#5A0117]/90 transition-colors">
+                <Link href="/products" className="block w-full py-3 bg-[#5A0117] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#5A0117]/90 transition-colors">
                   Shop Now
-                </a>
+                </Link>
               </div>
             </div>
           </div>

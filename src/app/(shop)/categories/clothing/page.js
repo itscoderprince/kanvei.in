@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import ProductCard from "../../../../components/ProductCard"
 import ProductSkeleton from "../../../../components/ProductSkeleton"
@@ -81,7 +81,7 @@ function ClothingPageContent() {
     }
   }, [searchParams])
 
-  const fetchProducts = async (isLoadMore = false) => {
+  const fetchProducts = useCallback(async (isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true)
@@ -124,14 +124,14 @@ function ClothingPageContent() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [filters, sortBy, page, products.length])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchProducts(false)
     }, 500)
     return () => clearTimeout(timer)
-  }, [filters, sortBy])
+  }, [fetchProducts])
 
   const loadMoreProducts = () => {
     if (!loadingMore && hasMore) {

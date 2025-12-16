@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense, useRef } from "react"
+import { useState, useEffect, Suspense, useRef, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import ProductCard from "../../../../../components/ProductCard"
 import ProductSkeleton from "../../../../../components/ProductSkeleton"
@@ -59,7 +59,7 @@ function MensWearPageContent() {
     if (search) setFilters(prev => ({ ...prev, search }))
   }, [searchParams])
 
-  const fetchProducts = async (isLoadMore = false) => {
+  const fetchProducts = useCallback(async (isLoadMore = false) => {
     try {
       if (isLoadMore) setLoadingMore(true)
       else setLoading(true)
@@ -96,12 +96,12 @@ function MensWearPageContent() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [filters, sortBy, page, products.length])
 
   useEffect(() => {
     const timer = setTimeout(() => fetchProducts(false), 500)
     return () => clearTimeout(timer)
-  }, [filters, sortBy])
+  }, [fetchProducts])
 
   const loadMoreProducts = () => {
     if (!loadingMore && hasMore) fetchProducts(true)

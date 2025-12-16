@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import ProductCard from "../../../../components/ProductCard"
 import ProductSkeleton from "../../../../components/ProductSkeleton"
@@ -85,7 +85,7 @@ function JewelleryPageContent() {
   }, [searchParams])
 
   // Fetch Products
-  const fetchProducts = async (isLoadMore = false) => {
+  const fetchProducts = useCallback(async (isLoadMore = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true)
@@ -93,7 +93,6 @@ function JewelleryPageContent() {
         setLoading(true)
       }
 
-      // Construct API URL
       const queryParams = new URLSearchParams()
       queryParams.append('category', 'jewellery')
       queryParams.append('page', isLoadMore ? page + 1 : 1)
@@ -129,15 +128,14 @@ function JewelleryPageContent() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [filters, sortBy, page, products.length])
 
-  // Debounce fetch when filters change
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchProducts(false)
     }, 500)
     return () => clearTimeout(timer)
-  }, [filters, sortBy])
+  }, [fetchProducts])
 
   const loadMoreProducts = () => {
     if (!loadingMore && hasMore) {
