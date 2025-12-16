@@ -9,18 +9,24 @@ export const dynamic = 'force-dynamic'
 
 async function getBlogs() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Use relative URL - works in both dev and production
     const response = await fetch(
-      `${baseUrl}/api/blogs?status=published&sort=newest`,
+      '/api/blogs?status=published',
       {
-        next: { revalidate: 60 } // Revalidate every 60 seconds
+        cache: "no-store" // Always fetch fresh data
       }
     )
+
+    console.log('Blog API Response Status:', response.status)
+
     if (!response.ok) {
       console.error("Failed to fetch blogs, status:", response.status)
       return []
     }
+
     const data = await response.json()
+    console.log('Blog API Data:', data)
+
     return data.blogs || []
   } catch (error) {
     console.error("Error fetching blogs:", error)
