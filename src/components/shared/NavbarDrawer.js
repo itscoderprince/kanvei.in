@@ -19,7 +19,8 @@ import {
   Gem,
   PenTool,
   Palette,
-  Shirt
+  Shirt,
+  Smartphone
 } from "lucide-react"
 
 export default function NavbarDrawer({ isOpen, onClose }) {
@@ -53,10 +54,20 @@ export default function NavbarDrawer({ isOpen, onClose }) {
   const menuItems = [
     { label: "Home", href: "/", icon: Home },
     { label: "Shop", href: "/products", icon: ShoppingBag },
+    {
+      label: "Clothing",
+      icon: Shirt,
+      children: [
+        { label: "All Clothing", href: "/categories/clothing" },
+        { label: "Mens Wear", href: "/categories/clothing/mens-wear" },
+        { label: "Womens Wear", href: "/categories/clothing/womens-wear" },
+        { label: "Kids Wear", href: "/categories/clothing/kids-wear" },
+      ]
+    },
+    { label: "Electronics", href: "/categories/electronics", icon: Smartphone },
     { label: "Jewellery", href: "/categories/jewellery", icon: Gem },
     { label: "Stationery", href: "/categories/stationery", icon: PenTool },
     { label: "Cosmetics", href: "/categories/cosmetics", icon: Palette },
-    { label: "Clothing", href: "/categories/clothing", icon: Shirt },
     { label: "About", href: "/about", icon: UserIcon },
     { label: "Contact", href: "/contact", icon: Settings },
   ]
