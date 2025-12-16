@@ -65,6 +65,7 @@ export default function Footer() {
                   { name: 'Stationery', href: '/categories/stationery' },
                   { name: 'Cosmetics', href: '/categories/cosmetics' },
                   { name: 'Clothing', href: '/categories/clothing' },
+                  { name: 'Blog', href: '/blog' },
                 ].map((link) => (
                   <li key={link.name}>
                     <Link
@@ -144,7 +145,7 @@ export default function Footer() {
             <div className="space-y-3 pt-4 text-sm text-white/80" style={{ fontFamily: "Montserrat, sans-serif" }}>
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#8C6141] shrink-0" />
-                <span>123 Fashion Street, Design District, Mumbai, India 400001</span>
+                <span>Ganga Nagar Harmu Ranchi, Kanvei Stationery & Cosmetics, 834002</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#8C6141] shrink-0" />
