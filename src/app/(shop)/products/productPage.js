@@ -65,6 +65,18 @@ export default function ProductPage() {
     }
   }, [searchParams])
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/categories")
+      const data = await res.json()
+      if (data.success) {
+        setCategories(data.categories)
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories", error)
+    }
+  }
+
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
