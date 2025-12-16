@@ -4,6 +4,9 @@ import Header from "@/components/shared/Header"
 import Footer from "@/components/shared/Footer"
 import { ArrowUpRight } from "lucide-react"
 
+// Force dynamic rendering - blog page needs runtime data
+export const dynamic = 'force-dynamic'
+
 async function getBlogs() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
