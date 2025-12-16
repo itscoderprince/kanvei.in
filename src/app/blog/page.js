@@ -9,28 +9,34 @@ export const dynamic = 'force-dynamic'
 
 async function getBlogs() {
   try {
-    // Use relative URL - works in both dev and production
-    const response = await fetch(
-      '/api/blogs?status=published',
-      {
-        cache: "no-store" // Always fetch fresh data
-      }
-    )
+    // Determine the base URL - use full URL for server-side rendering
+    const baseUrl = typeof window === 'undefined'
+      ? (process.env.NEXT_PUBLIC_BASE_URL || 'https://kanvei.in')
+      : '';
 
-    console.log('Blog API Response Status:', response.status)
+    const apiUrl = `${baseUrl}/api/blogs?status=published`;
+
+    console.log('Fetching blogs from:', apiUrl);
+
+    const response = await fetch(apiUrl, {
+      cache: "no-store" // Always fetch fresh data
+    });
+
+    console.log('Blog API Response Status:', response.status);
 
     if (!response.ok) {
-      console.error("Failed to fetch blogs, status:", response.status)
-      return []
+      console.error("Failed to fetch blogs, status:", response.status);
+      return [];
     }
 
-    const data = await response.json()
-    console.log('Blog API Data:', data)
+    const data = await response.json();
+    console.log('Blog API Data:', data);
+    console.log('Number of blogs:', data.blogs?.length || 0);
 
-    return data.blogs || []
+    return data.blogs || [];
   } catch (error) {
-    console.error("Error fetching blogs:", error)
-    return []
+    console.error("Error fetching blogs:", error);
+    return [];
   }
 }
 
