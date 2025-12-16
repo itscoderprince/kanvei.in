@@ -58,20 +58,20 @@ function ElectronicsPageContent() {
   const slides = [
     {
       id: "electronics-1",
-      desktopImage: "/electronics1.jpg",
-      mobileImage: "/electronics1.jpg",
+      desktopImage: "/electronics.png",
+      mobileImage: "/electronics.png",
       alt: "Premium Electronics Collection"
     },
     {
       id: "electronics-2",
-      desktopImage: "/electronics2.jpg",
-      mobileImage: "/electronics2.jpg",
+      desktopImage: "/4.jpg",
+      mobileImage: "/m4.png",
       alt: "Smart Gadgets & Devices"
     },
     {
       id: "electronics-3",
-      desktopImage: "/electronics3.jpg",
-      mobileImage: "/electronics3.jpg",
+      desktopImage: "/lastimg.webp",
+      mobileImage: "/lastimg.webp",
       alt: "Audio & Technology"
     },
   ]
