@@ -133,7 +133,10 @@ export default function NavbarDrawer({ isOpen, onClose }) {
                             <Link
                               key={cIdx}
                               href={child.href}
-                              onClick={onClose}
+                              onClick={() => {
+                                setExpandedCategory(null) // Close dropdown
+                                onClose() // Close drawer
+                              }}
                               className="block py-2 text-sm text-white/60 hover:text-[#DBCCB7] hover:translate-x-1 transition-all duration-200 border-l border-white/10 pl-3 hover:border-[#DBCCB7]"
                               style={{ fontFamily: "Montserrat, sans-serif" }}
                             >
@@ -148,7 +151,10 @@ export default function NavbarDrawer({ isOpen, onClose }) {
                   // Standard Link
                   <Link
                     href={item.href}
-                    onClick={onClose}
+                    onClick={() => {
+                      setExpandedCategory(null) // Close any open dropdown
+                      onClose() // Close drawer
+                    }}
                     className="flex items-center gap-3 p-3 rounded-lg text-white/80 hover:bg-white/5 hover:text-white transition-all duration-200 group"
                   >
                     <Icon className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
