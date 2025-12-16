@@ -512,7 +512,7 @@ export default function ProductDetailClient({ product: initialProduct }) {
 
         {/* --- SIMILAR PRODUCTS SECTION --- */}
         {product.category && (
-          <div className="mt-20 border-t border-gray-100 pt-10">
+          <div className="mt-5 border-t border-gray-100 pt-10">
             <SimilarProducts categoryId={product.category} currentProductId={product._id} />
           </div>
         )}
