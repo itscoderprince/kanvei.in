@@ -8,7 +8,7 @@ async function getBlogs() {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/blogs?published=true&sort=newest`,
-      { cache: "no-store" }
+      { next: { revalidate: 3600 } } // Revalidate every hour
     )
     if (!response.ok) throw new Error("Failed to fetch blogs")
     const data = await response.json()
