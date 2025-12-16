@@ -4,26 +4,23 @@ import Header from "@/components/shared/Header"
 import Footer from "@/components/shared/Footer"
 import { ArrowUpRight } from "lucide-react"
 
-// Force dynamic rendering to avoid build-time fetch issues
-export const dynamic = 'force-dynamic'
-
 async function getBlogs() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const response = await fetch(
-      `${baseUrl}/api/blogs?published=true&sort=newest`,
+      `${baseUrl}/api/blogs?status=published&sort=newest`,
       {
-        cache: "no-store",
-        // Add timeout and error handling for build time
-        signal: AbortSignal.timeout(5000)
+        next: { revalidate: 60 } // Revalidate every 60 seconds
       }
     )
-    if (!response.ok) throw new Error("Failed to fetch blogs")
+    if (!response.ok) {
+      console.error("Failed to fetch blogs, status:", response.status)
+      return []
+    }
     const data = await response.json()
     return data.blogs || []
   } catch (error) {
     console.error("Error fetching blogs:", error)
-    // Return empty array during build if fetch fails
     return []
   }
 }
