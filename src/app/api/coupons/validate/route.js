@@ -18,7 +18,7 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    const coupon = await Coupon.findOne({ 
+    const coupon = await Coupon.findOne({
       code: code.toUpperCase()
     })
 
@@ -46,7 +46,7 @@ export async function POST(request) {
     }
 
     const orderAmountNum = parseFloat(orderAmount)
-    
+
     // Check minimum order amount
     if (orderAmountNum < coupon.minimumOrderAmount) {
       return NextResponse.json({

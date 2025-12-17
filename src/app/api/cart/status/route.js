@@ -17,7 +17,7 @@ export async function GET(request) {
     const productOptionIds = searchParams.get('productOptionIds')?.split(',') || []
 
     if (productIds.length === 0 && productOptionIds.length === 0) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         cartStatus: {},
         message: 'No items to check'
       })
@@ -27,12 +27,12 @@ export async function GET(request) {
 
     // Find cart items for user
     const cartItems = await CartItem.find({ userId: session.user.id })
-    
+
     const cartStatus = {}
 
     // Check product items
     productIds.forEach(productId => {
-      const cartItem = cartItems.find(item => 
+      const cartItem = cartItems.find(item =>
         item.product?.toString() === productId && item.itemType === 'product'
       )
       cartStatus[`product_${productId}`] = {
@@ -44,7 +44,7 @@ export async function GET(request) {
 
     // Check product option items
     productOptionIds.forEach(productOptionId => {
-      const cartItem = cartItems.find(item => 
+      const cartItem = cartItems.find(item =>
         item.productOption?.toString() === productOptionId && item.itemType === 'productOption'
       )
       cartStatus[`productOption_${productOptionId}`] = {

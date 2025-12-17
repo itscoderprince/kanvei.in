@@ -7,7 +7,7 @@ import { authOptions } from "../../../auth/[...nextauth]/route";
 export async function GET(request, { params }) {
   try {
     await connectDB();
-    
+
     // Get user session
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -64,7 +64,7 @@ export async function GET(request, { params }) {
       });
 
       let message = "You need to purchase and receive this product before you can review it";
-      
+
       if (anyOrders.length > 0) {
         // User has purchased but not delivered yet
         const pendingOrder = anyOrders.find(order => ['pending', 'processing', 'shipping', 'out_for_delivery'].includes(order.status));

@@ -67,11 +67,11 @@ export async function PUT(request, { params }) {
 
     // Check if code is being changed and if new code already exists
     if (data.code && data.code.toUpperCase() !== coupon.code) {
-      const existingCoupon = await Coupon.findOne({ 
+      const existingCoupon = await Coupon.findOne({
         code: data.code.toUpperCase(),
         _id: { $ne: id }
       })
-      
+
       if (existingCoupon) {
         return NextResponse.json({
           success: false,

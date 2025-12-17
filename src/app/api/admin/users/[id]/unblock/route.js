@@ -8,7 +8,7 @@ import { getAuthUser } from "../../../../../../lib/auth"
 export async function POST(request, { params }) {
   try {
     await connectDB()
-    
+
     // Check admin authentication
     const session = await getServerSession(authOptions)
     let isAdmin = Boolean(session && session.user?.role === "admin")
@@ -47,8 +47,8 @@ export async function POST(request, { params }) {
       return Response.json({ success: false, error: result.error }, { status: 400 })
     }
 
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       message: `User ${user.name} has been unblocked successfully`,
       unblockedAccount: result.unblockedAccount
     })

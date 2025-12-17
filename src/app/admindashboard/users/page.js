@@ -175,6 +175,30 @@ export default function AdminUsers() {
     finally { setBlockingUsers(prev => { const n = new Set(prev); n.delete(userId); return n }) }
   }
 
+  const handleMakeAdmin = async (userId, userName) => {
+    if (!confirm(`Are you sure you want to promote "${userName}" to Admin? This gives them full access.`)) return
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "admin", name: userName, email: users.find(u => u._id === userId)?.email }) // Minimum required fields for validation if strictly checked, but PUT usually merges or handles partials depending on implementation. 
+        // Logic check: The provided PUT implementation requires name and email. 
+        // So I must provide them. I'll grab them from the user object.
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setUsers(users.map(u => u._id === userId ? { ...u, role: 'admin' } : u))
+        toast.success(`${userName} is now an Admin`)
+      } else {
+        toast.error(data.error)
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to update role")
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -300,7 +324,12 @@ export default function AdminUsers() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 text-gray-400">
-                            <button onClick={() => handleViewUser(user)} className="p-1.5 hover:text-blue-600 transition-colors"><Eye size={16} /></button>
+                            <button onClick={() => handleViewUser(user)} className="p-1.5 hover:text-blue-600 transition-colors" title="View Details"><Eye size={16} /></button>
+                            {user.role !== 'admin' && (
+                              <button onClick={() => handleMakeAdmin(user._id, user.name)} className="p-1.5 hover:text-purple-600 transition-colors" title="Promote to Admin">
+                                <Shield size={16} />
+                              </button>
+                            )}
                             <button onClick={() => handleEditUser(user)} className="p-1.5 hover:text-green-600 transition-colors"><Edit2 size={16} /></button>
                             {user.role !== 'admin' && (
                               <>

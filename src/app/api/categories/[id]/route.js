@@ -59,7 +59,7 @@ export async function DELETE(request, { params }) {
   try {
     await connectDB()
     const { id } = await params
-    
+
     // Check NextAuth session first
     const session = await getServerSession(authOptions)
     let isAdmin = Boolean(session && session.user?.role === "admin")
@@ -94,7 +94,7 @@ export async function DELETE(request, { params }) {
 
     // Get all categories with their images before deletion
     const categoriesToDelete = await Category.find({ _id: { $in: idsToDelete } }).lean()
-    
+
     if (categoriesToDelete.length === 0) {
       return Response.json({ success: false, error: "Category not found" }, { status: 404 })
     }
@@ -110,7 +110,7 @@ export async function DELETE(request, { params }) {
 
     // Collect all product images for Cloudinary deletion
     const allImagesToDelete = [...categoryImages]
-    
+
     // Add product main images
     for (const product of productsToDelete) {
       if (Array.isArray(product.images)) {
@@ -147,19 +147,19 @@ export async function DELETE(request, { params }) {
     if (productIdsToDelete.length > 0) {
       // Delete option images first
       await OptionImage.deleteMany({ optionId: { $in: optionIds } })
-      
+
       // Delete product options
       await ProductOption.deleteMany({ productId: { $in: productIdsToDelete } })
-      
+
       // Delete product attributes
       await ProductAttribute.deleteMany({ productId: { $in: productIdsToDelete } })
-      
+
       // Delete product images
       await ProductImage.deleteMany({ productId: { $in: productIdsToDelete } })
-      
+
       // Delete product views
       await ProductView.deleteMany({ productId: { $in: productIdsToDelete } })
-      
+
       // Delete products
       await Product.deleteMany({ _id: { $in: productIdsToDelete } })
     }
@@ -167,9 +167,9 @@ export async function DELETE(request, { params }) {
     // Finally, delete categories
     await Category.deleteMany({ _id: { $in: idsToDelete } })
 
-    return Response.json({ 
-      success: true, 
-      message: "Category and related data deleted successfully", 
+    return Response.json({
+      success: true,
+      message: "Category and related data deleted successfully",
       deletedCategories: idsToDelete.length,
       deletedProducts: productIdsToDelete.length,
       deletedImages: allImagesToDelete.length

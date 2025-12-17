@@ -35,8 +35,9 @@ export default function HomeProductShow() {
         console.error(`Attempt ${attempts + 1} failed:`, error)
         attempts++
         if (attempts < maxAttempts) {
-          // Retry after 1 second
-          setTimeout(fetchProducts, 8000)
+          // Retry after 1.5 second
+          console.log(`🔄 Retrying product fetch (Attempt ${attempts + 1}/${maxAttempts})...`)
+          setTimeout(fetchProducts, 1500)
         } else {
           setError('Unable to load products.')
         }

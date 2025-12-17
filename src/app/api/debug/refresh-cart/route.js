@@ -21,7 +21,7 @@ async function getAuthenticatedUser(request) {
         method: 'nextauth'
       }
     }
-    
+
     // Try custom auth token
     const authUser = await getAuthUser(request)
     if (authUser?.userId) {
@@ -41,7 +41,7 @@ async function getAuthenticatedUser(request) {
         }
       }
     }
-    
+
     return {
       success: false,
       error: 'Unauthorized'
@@ -63,17 +63,17 @@ export async function GET(request) {
     }
 
     await connectDB()
-    
+
     // Get all cart items for the user
     const cartItems = await CartItem.find({ userId: auth.userId })
-    
+
     console.log(`🔄 Found ${cartItems.length} cart items to refresh`)
-    
+
     let refreshedCount = 0
-    
+
     for (const cartItem of cartItems) {
       let updated = false
-      
+
       if (cartItem.itemType === 'product' && cartItem.product) {
         // Refresh product snapshot with latest product data
         const product = await Product.findById(cartItem.product)
@@ -102,16 +102,16 @@ export async function GET(request) {
           console.log(`✅ Updated option snapshot for: ${productOption.productId.name}`)
         }
       }
-      
+
       if (updated) {
         await cartItem.save()
         refreshedCount++
       }
     }
-    
+
     console.log(`🎉 Refreshed ${refreshedCount} cart items`)
-    
-    return Response.json({ 
+
+    return Response.json({
       success: true,
       message: `Refreshed ${refreshedCount} cart items with updated images`,
       cartItemsFound: cartItems.length,
@@ -119,9 +119,9 @@ export async function GET(request) {
     })
   } catch (error) {
     console.error('Refresh cart error:', error)
-    return Response.json({ 
-      success: false, 
-      error: error.message 
+    return Response.json({
+      success: false,
+      error: error.message
     }, { status: 500 })
   }
 }

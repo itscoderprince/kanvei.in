@@ -16,25 +16,25 @@ export async function GET(request) {
     if (!userId) {
       return Response.json({ success: false, error: "User ID required" }, { status: 400 })
     }
-    
+
     // Get wishlist items with populated product data
     const items = await Wishlist.find({ userId })
       .populate({ path: "productId", model: Product })
       .lean()
-    
+
     // For each item, fetch product images and check if product is in cart
     const itemsWithImages = await Promise.all(
       items.map(async (item) => {
         if (item.productId) {
           const productImages = await ProductImage.findOne({ productId: item.productId._id }).lean()
-          
+
           // Check if this product is already in the user's cart
           const cartItem = await CartItem.findOne({
             userId: new mongoose.Types.ObjectId(userId),
             product: item.productId._id,
             itemType: 'product'
           }).lean()
-          
+
           return {
             ...item,
             productId: {
@@ -51,7 +51,7 @@ export async function GET(request) {
         return item
       })
     )
-    
+
     return Response.json({ success: true, wishlist: itemsWithImages })
   } catch (error) {
     console.error("Error fetching wishlist:", error)

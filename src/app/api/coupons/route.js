@@ -16,9 +16,9 @@ export async function GET(request) {
 
     // If validating a specific coupon
     if (validate && code) {
-      const coupon = await Coupon.findOne({ 
+      const coupon = await Coupon.findOne({
         code: code.toUpperCase(),
-        isActive: true 
+        isActive: true
       })
 
       if (!coupon) {
@@ -32,7 +32,7 @@ export async function GET(request) {
       if (!coupon.isCurrentlyValid) {
         let errorMessage = 'Coupon has expired'
         const now = new Date()
-        
+
         if (coupon.validFrom > now) {
           errorMessage = 'Coupon is not yet active'
         } else if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
@@ -58,14 +58,14 @@ export async function GET(request) {
       if (orderAmount) {
         const amount = parseFloat(orderAmount)
         const calculation = coupon.calculateDiscount(amount)
-        
+
         if (!calculation.isValid) {
           return NextResponse.json({
             success: false,
             error: calculation.error
           }, { status: 400 })
         }
-        
+
         discountInfo = calculation
       }
 
@@ -86,7 +86,7 @@ export async function GET(request) {
 
     // Admin route - get all coupons
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user || session.user.role !== 'admin') {
       console.log('Admin access check failed:', {
         hasSession: !!session,
@@ -121,7 +121,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     // Debug logging
     console.log('Session in POST /api/coupons:', {
       hasSession: !!session,
@@ -130,7 +130,7 @@ export async function POST(request) {
       userRole: session?.user?.role,
       userEmail: session?.user?.email
     })
-    
+
     // Check if session exists and user is admin
     if (!session || !session.user || session.user.role !== 'admin') {
       console.log('POST Access denied - not admin')

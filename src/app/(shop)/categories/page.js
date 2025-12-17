@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import Header from "../../../components/shared/Header"
-import Footer from "../../../components/shared/Footer"
+
 import CategoryCard from "../../../components/CategoryCard"
 
 // Cache configuration for categories page
@@ -223,28 +222,11 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+
 
       <main className="flex-1">
         {/* Page Header */}
-        <section className="relative py-24 px-4 sm:px-6 lg:px-8 text-white overflow-hidden bg-[#5A0117]">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10 bg-[url('/pattern-bg.png')] mix-blend-overlay"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/10"></div>
 
-          <div className="relative max-w-7xl mx-auto text-center z-10">
-            <span className="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold tracking-wider mb-6 text-[#DBCCB7]">
-              OUR COLLECTIONS
-            </span>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight" style={{ fontFamily: "Sugar, serif" }}>
-              Browse Categories
-            </h1>
-            <div className="w-32 h-1.5 bg-[#DBCCB7] mx-auto mb-8 rounded-full"></div>
-            <p className="text-xl md:text-2xl text-[#DBCCB7] max-w-3xl mx-auto font-light leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              Explore our carefully curated product categories, each designed to bring you the best in quality and style.
-            </p>
-          </div>
-        </section>
 
         {/* Categories Grid */}
         <section className="py-12 px-4 sm:px-6 lg:px-8">
@@ -304,7 +286,7 @@ export default function CategoriesPage() {
         </section>
       </main>
 
-      <Footer />
+
     </div>
   )
 }

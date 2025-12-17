@@ -8,19 +8,19 @@ import { getAuthUser } from "../../../../../lib/auth"
 export async function POST(request) {
   try {
     await connectDB()
-    
+
     // Check admin authentication via NextAuth session first
     const session = await getServerSession(authOptions)
     let isAdmin = Boolean(session && session.user?.role === "admin")
     let authUser = null
     let adminUserId = session?.user?.id
-    
+
     console.log("🔍 Checking authentication:", {
       hasSession: !!session,
       sessionRole: session?.user?.role,
       sessionUserId: session?.user?.id
     })
-    
+
     // If no NextAuth session, try JWT token authentication
     if (!isAdmin) {
       authUser = await getAuthUser(request)
@@ -45,7 +45,7 @@ export async function POST(request) {
       })
       return Response.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
-    
+
     console.log("✅ Blocked-status API: Admin authenticated", {
       method: session?.user?.role === "admin" ? "NextAuth" : "JWT",
       adminId: session?.user?.id || authUser?.userId
@@ -58,14 +58,14 @@ export async function POST(request) {
     }
 
     // Find all blocked accounts for the provided user IDs
-    const blockedAccounts = await BlockedAccount.find({ 
-      userId: { $in: userIds } 
+    const blockedAccounts = await BlockedAccount.find({
+      userId: { $in: userIds }
     }).select('userId')
 
     const blockedUserIds = blockedAccounts.map(account => account.userId.toString())
 
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       blockedUsers: blockedUserIds
     })
   } catch (error) {

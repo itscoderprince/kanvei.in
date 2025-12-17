@@ -18,7 +18,7 @@ async function getAuthenticatedUser(request) {
         method: 'nextauth'
       }
     }
-    
+
     // Try custom auth token
     const authUser = await getAuthUser(request)
     if (authUser?.userId) {
@@ -38,7 +38,7 @@ async function getAuthenticatedUser(request) {
         }
       }
     }
-    
+
     return {
       success: false,
       error: 'Unauthorized'
@@ -61,7 +61,7 @@ export async function GET(request) {
     }
 
     await connectDB()
-    
+
     const user = await User.findById(auth.userId).select('-password')
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -100,13 +100,13 @@ export async function PUT(request) {
     }
 
     await connectDB()
-    
+
     const body = await request.json()
     const { name, phone } = body
 
     // Validate input
     const updateData = {}
-    
+
     if (name !== undefined) {
       if (!name.trim()) {
         return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -147,7 +147,7 @@ export async function PUT(request) {
     })
   } catch (error) {
     console.error('Error updating user profile:', error)
-    
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 })

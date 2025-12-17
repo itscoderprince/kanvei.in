@@ -7,7 +7,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 export async function GET(request) {
   try {
     await connectDB();
-    
+
     // Get user session and verify admin role
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {

@@ -19,7 +19,7 @@ async function getAuthenticatedUser(request) {
         method: 'nextauth'
       }
     }
-    
+
     // Try custom auth token
     const authUser = await getAuthUser(request)
     if (authUser?.userId) {
@@ -39,7 +39,7 @@ async function getAuthenticatedUser(request) {
         }
       }
     }
-    
+
     return {
       success: false,
       error: 'Unauthorized'
@@ -62,7 +62,7 @@ export async function GET(request) {
     }
 
     await connectDB()
-    
+
     const addresses = await Address.find({ userId: auth.userId })
       .sort({ isHomeAddress: -1, createdAt: -1 }) // Home address first, then by creation date
 
@@ -90,7 +90,7 @@ export async function POST(request) {
     }
 
     await connectDB()
-    
+
     // Check if user already has 3 addresses
     const addressCount = await Address.countDocuments({ userId: auth.userId })
     if (addressCount >= 3) {
@@ -134,7 +134,7 @@ export async function POST(request) {
     })
   } catch (error) {
     console.error('Error adding address:', error)
-    
+
     if (error.code === 'MAX_ADDRESSES_EXCEEDED') {
       return NextResponse.json(
         { error: error.message },
@@ -163,7 +163,7 @@ export async function PUT(request) {
     }
 
     await connectDB()
-    
+
     const body = await request.json()
     const { addressId, street, city, state, pinCode, isHomeAddress } = body
 
@@ -187,7 +187,7 @@ export async function PUT(request) {
     address.city = city.trim()
     address.state = state?.trim() || ''
     address.pinCode = pinCode?.trim() || ''
-    
+
     if (isHomeAddress !== undefined) {
       address.isHomeAddress = Boolean(isHomeAddress)
     }
@@ -208,7 +208,7 @@ export async function PUT(request) {
     })
   } catch (error) {
     console.error('Error updating address:', error)
-    
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 })
@@ -230,7 +230,7 @@ export async function DELETE(request) {
     }
 
     await connectDB()
-    
+
     const { searchParams } = new URL(request.url)
     const addressId = searchParams.get('id')
 
@@ -239,9 +239,9 @@ export async function DELETE(request) {
     }
 
     // Find and delete the address (ensure it belongs to the user)
-    const deletedAddress = await Address.findOneAndDelete({ 
-      _id: addressId, 
-      userId: auth.userId 
+    const deletedAddress = await Address.findOneAndDelete({
+      _id: addressId,
+      userId: auth.userId
     })
 
     if (!deletedAddress) {
